@@ -1,185 +1,60 @@
 # ElbiTutors
 
-A full-stack MERN (MongoDB, Express, React, Node.js) web application following RESTful API principles for managing items with CRUD operations.
+### 🧭 **ElbiTutors – System Overview**
 
-## Features
+**ElbiTutors** is a **peer-to-peer tutoring and academic support platform** designed for students of the **University of the Philippines Los Baños (UPLB)**. It connects tutees, tutors, and Learning Resource Center (LRC) staff in one centralized system to make tutoring more accessible, organized, and accountable.
 
-- **RESTful API**: Standard HTTP methods (GET, POST, PUT, DELETE)
-- **MongoDB Database**: NoSQL database for data persistence
-- **Express Backend**: Node.js web application framework
-- **React Frontend**: Modern UI with component-based architecture
-- **CRUD Operations**: Create, Read, Update, and Delete items
-- **Responsive Design**: Mobile-friendly user interface
+---
 
-## Project Structure
+### 🎯 **Main Goals**
 
-```
-ElbiTutor/
-├── backend/                 # Node.js + Express backend
-│   ├── src/
-│   │   ├── models/         # MongoDB models
-│   │   ├── routes/         # API routes
-│   │   └── controllers/    # Request handlers
-│   ├── server.js           # Express server entry point
-│   └── package.json
-├── frontend/               # React frontend
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   └── services/       # API service layer
-│   └── package.json
-└── README.md
-```
+* Provide students with **easy access to academic help**.
+* **Unify** peer tutoring, group sessions, and official LRC review classes in one platform.
+* **Promote collaborative learning** and academic preparedness within the UPLB community.
 
-## Prerequisites
+---
 
-- Node.js (v14 or higher)
-- MongoDB (v4.4 or higher)
-- npm or yarn
+### 👥 **User Roles**
 
-## Installation
+1. **Tutee** – Regular student who books sessions and gives feedback.
+2. **LRC-Certified Tutor** – Verified tutor who can host one-on-one and group sessions.
+3. **Admin (LRC Staff)** – Manages users, approves bookings, verifies tutors, and handles reports.
 
-### 1. Clone the repository
+---
 
-```bash
-git clone https://github.com/GabDiocadiz/ElbiTutor.git
-cd ElbiTutor
-```
+### ⚙️ **Core Features**
 
-### 2. Setup Backend
+| Feature                         | Description                                                                                |
+| ------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Tutee Account Creation**      | Login via UP Mail (Google OAuth) and register as a tutee.                                  |
+| **Admin Account Creation**      | Secure admin accounts with permission flags for management tasks.                          |
+| **Admin Interface**             | Dashboard to manage users, approve sessions, and resolve reports.                          |
+| **Tutor Profile Management**    | Tutors can set expertise, availability, and profile info.                                  |
+| **Session Booking**             | Tutees book one-on-one sessions; admins review and approve.                                |
+| **Tutor Evaluation & Feedback** | Tutees rate tutors via Likert-scale after sessions.                                        |
+| **Group Tutoring Sessions**     | Tutors can host group review sessions with limited slots.                                  |
+| **Reporting & Issue Handling**  | Both tutees and tutors can report misconduct or issues; admins review and enforce actions. |
 
-```bash
-cd backend
-npm install
-```
+---
 
-Create a `.env` file in the backend directory:
+### 🔒 **Nonfunctional Highlights**
 
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/elbitutor
-```
+* **Security:** Role-based access, UP Mail login, data protection.
+* **Performance:** Real-time schedule checking and validation to avoid double bookings.
+* **Reliability:** All actions (bookings, reports, role changes) are logged for accountability.
+* **Usability:** Simple and consistent UI designed for UPLB students and staff.
 
-### 3. Setup Frontend
+---
 
-```bash
-cd ../frontend
-npm install
-```
+### 🧩 **System Context**
 
-Create a `.env` file in the frontend directory (optional):
+* **Frontend:** Web application for tutees, tutors, and admins.
+* **Backend:** Handles authentication, booking logic, and database operations.
+* **Integration:** Google OAuth (UP Mail), optional email notifications for bookings.
 
-```env
-REACT_APP_API_URL=http://localhost:5000/api
-```
+---
 
-## Running the Application
+### 💡 **In Summary**
 
-### Start MongoDB
-
-Make sure MongoDB is running on your system:
-
-```bash
-# On macOS with Homebrew
-brew services start mongodb-community
-
-# On Linux
-sudo systemctl start mongod
-
-# On Windows
-# Start MongoDB service from Services panel
-```
-
-### Start Backend Server
-
-```bash
-cd backend
-npm start
-```
-
-The backend server will run on `http://localhost:5000`
-
-### Start Frontend Development Server
-
-In a new terminal:
-
-```bash
-cd frontend
-npm start
-```
-
-The React app will run on `http://localhost:3000`
-
-## API Endpoints
-
-All endpoints are prefixed with `/api/items`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/items` | Get all items |
-| GET | `/api/items/:id` | Get item by ID |
-| POST | `/api/items` | Create new item |
-| PUT | `/api/items/:id` | Update item |
-| DELETE | `/api/items/:id` | Delete item |
-
-### Sample Request Body (POST/PUT)
-
-```json
-{
-  "name": "Sample Item",
-  "description": "This is a sample item description",
-  "price": 29.99,
-  "category": "Electronics",
-  "inStock": true
-}
-```
-
-## Usage
-
-1. Open your browser and navigate to `http://localhost:3000`
-2. Click "Add New Item" to create a new item
-3. Fill in the form with item details
-4. View all items in the grid layout
-5. Edit or delete items using the action buttons
-
-## Technologies Used
-
-### Backend
-- **Node.js**: JavaScript runtime
-- **Express**: Web application framework
-- **MongoDB**: NoSQL database
-- **Mongoose**: MongoDB object modeling
-- **CORS**: Cross-origin resource sharing
-- **dotenv**: Environment variable management
-
-### Frontend
-- **React**: UI library
-- **Axios**: HTTP client for API calls
-- **CSS3**: Styling
-
-## Development
-
-### Backend Development
-
-```bash
-cd backend
-npm run dev  # Uses Node's --watch flag for auto-restart
-```
-
-### Frontend Development
-
-```bash
-cd frontend
-npm start  # Starts development server with hot reload
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the ISC License.
+> **ElbiTutors** is an academic support web app that streamlines peer tutoring at UPLB.
+> It allows students to connect with verified tutors, book sessions, give feedback, and participate in LRC-backed reviews — all while giving administrators control over verification, scheduling, and conduct enforcement.
