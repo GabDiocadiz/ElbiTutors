@@ -1,4 +1,4 @@
-# ElbiTutor
+# ElbiTutors
 
 A full-stack MERN (MongoDB, Express, React, Node.js) web application following RESTful API principles for managing items with CRUD operations.
 
