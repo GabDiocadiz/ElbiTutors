@@ -1,1 +1,0 @@
-<full content of your Guide.md here>
