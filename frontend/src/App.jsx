@@ -1,11 +1,22 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'; 
+import { useEffect } from 'react'; // for testing
+import { getUserProfile } from './services/api';
 import Login from './features/auth/Login';
 import Dashboard from './pages/Dashboard'; 
 import AdminPanel from './pages/AdminPanel';
 import TutorProfile from './pages/TutorProfile'; 
 import Booking from './pages/Booking'; 
 
+
 function App() {
+  useEffect(() => {
+    // TEST: frozen contract endpoint
+    // for frontend testing purposes only
+    getUserProfile()
+      .then(res => console.log("Success:", res.data))
+      .catch(err => console.log("Caught Frozen Error:", err));
+  }, []);
+
   return (
     <BrowserRouter> 
       <Routes> 

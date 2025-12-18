@@ -3,7 +3,17 @@ import { createContext, useState } from 'react';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  // tutee user
+  const [user, setUser] = useState({
+    name: '',
+    email: '',
+    role: 'tutee',
+    degree_program: '',
+    classification: '',
+    isLRCAdmin: false,
+    picture: '',
+    preferred_subjects: []
+  });
 
   const login = () => {
     console.log("Google Login Triggered");

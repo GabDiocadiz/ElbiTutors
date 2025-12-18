@@ -12,9 +12,7 @@ export default function Login() {
     <div className="flex flex-col items-center justify-center h-screen">
       <h1 className="text-xl font-bold">ElBiTutors Login</h1>
       
-      {/* Google OAuth Authentication Trigger
-        In production, this initiates the backend flow at /backend/auth/google.
-      */}
+      {/* Google OAuth Authentication Trigger*/}
       <button 
         onClick={login} 
         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
