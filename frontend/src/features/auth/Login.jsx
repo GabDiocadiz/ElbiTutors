@@ -1,13 +1,20 @@
-import { Link } from 'react-router-dom'; // [cite: 109]
-import { useAuth } from '../../hooks/useAuth'; // [cite: 92]
+import { Link } from 'react-router-dom'; 
+import { useAuth } from '../../hooks/useAuth'; 
+
+// Login Page Component
+// entry-point for ElbiTutors
 
 export default function Login() {
-  const { login } = useAuth(); // [cite: 94]
+  // store user state and JWT
+  const { login } = useAuth(); 
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <h1 className="text-xl font-bold">ElBiTutors Login</h1>
       
+      {/* Google OAuth Authentication Trigger
+        In production, this initiates the backend flow at /backend/auth/google.
+      */}
       <button 
         onClick={login} 
         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
@@ -15,6 +22,7 @@ export default function Login() {
         Sign in with Google
       </button>
 
+      {/* for route testing purposes only */}
       <div className="mt-10 p-4 border border-dashed border-gray-400">
         <p className="text-sm text-gray-500 mb-2">Dev Testing Links:</p>
         <nav className="flex gap-4">
