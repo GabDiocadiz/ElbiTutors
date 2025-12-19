@@ -1,1 +1,35 @@
-// placeholder
+import express from 'express';
+import cors from 'cors';
+// import requestLogger from './middlewares/requestLogger.js';
+// import errorMiddleware from './middlewares/errorMiddleware.js';
+
+import userRoutes from './routes/userRoutes.js';
+// import authRoutes from './routes/authRoutes.js';
+// import sessionRoutes from './routes/sessionRoutes.js';
+
+const app = express();
+
+// Core Middleware
+app.use(express.json()); // Parses incoming JSON requests
+app.use(express.urlencoded({ extended: true })); // Parses URL-encoded requests
+app.use(cors()); // Enables Cross-Origin Resource Sharing
+
+// TODO: Implement requestLogger middleware
+// app.use(requestLogger);
+
+// Mount API Routes
+app.use('/api/users', userRoutes);
+// TODO: Implement authRoutes
+// app.use('/api/auth', authRoutes);
+// TODO: Implement sessionRoutes
+// app.use('/api/sessions', sessionRoutes);
+
+// Root route for API status check
+app.get('/', (req, res) => {
+  res.send('===== ElbiTutors API is running =====');
+});
+
+// TODO: Implement errorMiddleware
+// app.use(errorMiddleware);
+
+export default app;
