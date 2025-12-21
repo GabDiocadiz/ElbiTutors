@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema({
   google_sub: { type: String },
   email_verified: { type: Boolean, default: false },
   picture: { type: String },
+  status: { 
+    type: String, 
+    enum: ["active", "suspended", "inactive"], 
+    default: "active" 
+  },
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);
