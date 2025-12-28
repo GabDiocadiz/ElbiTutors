@@ -42,19 +42,21 @@ export default function Navbar() {
           </Link>
         </div>
 
-        <Link
-          to={user?.role === 'tutor' ? '/tutor-profile' : '/profile'}
-          className="navbar-user"
-        >
-          <span className="user-email">{user?.email || 'user@up.edu.ph'}</span>
-          <div className="user-avatar">
-            <img
-              src={user?.picture || userPlaceholder}
-              alt="User Avatar"
-              className="avatar-image"
-            />
-          </div>
-        </Link>
+        {user && (
+          <Link
+            to={user?.role === 'tutor' ? '/tutor-profile' : '/profile'}
+            className="navbar-user"
+          >
+            <span className="user-email">{user?.email || 'user@up.edu.ph'}</span>
+            <div className="user-avatar">
+              <img
+                src={user?.picture || userPlaceholder}
+                alt="User Avatar"
+                className="avatar-image"
+              />
+            </div>
+          </Link>
+        )}
       </div>
     </nav>
   );

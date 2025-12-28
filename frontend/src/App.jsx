@@ -2,6 +2,11 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react'; // for testing
 import { getUserProfile } from './services/api';
 import Login from './features/auth/Login';
+import Home from './pages/Home';
+import AboutPage from './pages/About';
+import LRCGuide from './components/LRCGuide';
+import BasicInfo from './components/BasicInfo';
+import TermsAndConditions from './components/TermsAndConditions';
 import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
 import TutorProfile from './pages/TutorProfile';
@@ -20,21 +25,25 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter> 
-      <Navbar />
-      <Routes> 
+    <BrowserRouter>
+      <Routes>
         {/* Landing Page */}
-        <Route path="/" element={<Login />} /> 
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/lrc-guide" element={<LRCGuide />} />
+        <Route path="/basic-info" element={<BasicInfo />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
 
-        {/* Tutor and Tutees Routes */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tutors/:id" element={<TutorProfile />} />
-        <Route path="/tutor-profile" element={<TutorProfile />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/booking" element={<Booking />} /> 
-        
+        {/* Logged-in Routes with Navbar */}
+        <Route path="/dashboard" element={<><Navbar /><Dashboard /></>} />
+        <Route path="/tutors/:id" element={<><Navbar /><TutorProfile /></>} />
+        <Route path="/tutor-profile" element={<><Navbar /><TutorProfile /></>} />
+        <Route path="/profile" element={<><Navbar /><Profile /></>} />
+        <Route path="/booking" element={<><Navbar /><Booking /></>} />
+
         {/* Admin Routes */}
-        <Route path="/admin" element={<AdminPanel />} /> 
+        <Route path="/admin" element={<><Navbar /><AdminPanel /></>} /> 
 
         {/* Page Not Found Error 404 issues */}
         <Route path="*" element={

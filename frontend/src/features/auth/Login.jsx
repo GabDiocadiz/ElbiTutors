@@ -1,33 +1,63 @@
-import { Link } from 'react-router-dom'; 
-import { useAuth } from '../../hooks/useAuth'; 
-
-// Login Page Component
-// entry-point for ElbiTutors
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import logoLightMode from '../../assets/logo_lightmode.png';
+import '../../styles/design.css';
 
 export default function Login() {
-  // store user state and JWT
-  const { login } = useAuth(); 
+  const [step, setStep] = useState(1);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  // Step 1: Login with UP Mail
+  const handleGoogleLogin = async () => {
+    // In a real scenario, login() would trigger the Google Popup
+    setStep(2);
+  };
+
+  // Step 3: Final Submission
+  const handleFinalSignup = (e) => {
+    e.preventDefault();
+    navigate('/dashboard');
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-xl font-bold">ElBiTutors Login</h1>
-      
-      {/* Google OAuth Authentication Trigger*/}
-      <button 
-        onClick={login} 
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
-      >
-        Sign in with Google
-      </button>
+    <div className="login-page-container">
+      <div className="login-content-wrapper">
+        
+        {/* STEP 1: LANDING */}
+        {step === 1 && (
+          <div className="login-step-container">
+            <img 
+              src={logoLightMode} 
+              alt="ELBI Tutors" 
+              className="login-main-logo" 
+            />
+            
+            <button onClick={handleGoogleLogin} className="login-btn-maroon">
+              Login with <strong>UP Mail</strong>
+            </button>
+            
+            <button onClick={() => navigate('/about')} className="login-btn-gray">
+              What is ElBiTutors?
+            </button>
+          </div>
+        )}
 
-      {/* for route testing purposes only */}
-      <div className="mt-10 p-4 border border-dashed border-gray-400">
-        <p className="text-sm text-gray-500 mb-2">Dev Testing Links:</p>
-        <nav className="flex gap-4">
-          <Link to="/admin" className="text-blue-500 underline">Go to Admin</Link>
-          <Link to="/dashboard" className="text-blue-500 underline">Go to Dashboard</Link>
-          <Link to="/booking" className="text-blue-500 underline">Go to Booking</Link>
-        </nav>
+        {/* STEP 2: CHOICE */}
+        {step === 2 && (
+          <div className="login-step-container">
+            {/* UPDATED: Navigates to Basic Info */}
+            <button onClick={() => navigate('/basic-info')} className="login-btn-green">
+              I want to <strong>learn.</strong>
+            </button>
+            
+            {/* UPDATED: Navigates to LRC Guide (from previous request) */}
+            <button onClick={() => navigate('/lrc-guide')} className="login-btn-maroon">
+              I want to become an <strong>LRC-Certified tutor</strong>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
