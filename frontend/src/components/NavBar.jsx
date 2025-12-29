@@ -29,8 +29,8 @@ export default function Navbar() {
             Home
           </Link>
           <Link 
-            to="/booking" 
-            className={isActive('/booking') ? 'nav-button active' : 'nav-button'}
+            to="/study" 
+            className={isActive('/study') ? 'nav-button active' : 'nav-button'}
           >
             Study
           </Link>

@@ -1,21 +1,28 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import SimpleNavBar from '../components/SimpleNavBar';
+import Navbar from '../components/Navbar';
 import logoLightMode from '../assets/logo_lightmode.png';
+import Footer from '../components/Footer';
 import '../styles/design.css';
 
 const AboutPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <div className="about-page-bg">
-      <SimpleNavBar />
+      {/* Navbar Logic */}
+      {user ? <Navbar /> : <SimpleNavBar />}
 
       <main className="about-content-card">
-        {/* Back Button */}
-        <button className="back-button" onClick={() => navigate(-1)}>
-          <span className="back-icon">←</span> Back
-        </button>
+        {/* Back Button Logic */}
+        {!user && (
+          <button className="back-button" onClick={() => navigate(-1)}>
+            <span className="back-icon">←</span> Back
+          </button>
+        )}
 
         {/* Section: What is ELBITutor? */}
         <section className="text-section">
@@ -64,6 +71,9 @@ const AboutPage = () => {
           </div>
         </section>
       </main>
+
+      {/* Footer moved OUTSIDE of main content card */}
+      <Footer />
     </div>
   );
 };

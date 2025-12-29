@@ -11,7 +11,7 @@ import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
 import TutorProfile from './pages/TutorProfile';
 import Profile from './pages/Profile';
-import Booking from './pages/Booking';
+import Study from './pages/Study';
 import Navbar from './components/Navbar';
 
 
@@ -36,11 +36,11 @@ function App() {
         <Route path="/terms" element={<TermsAndConditions />} />
 
         {/* Logged-in Routes with Navbar */}
-        <Route path="/dashboard" element={<><Navbar /><Dashboard /></>} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tutors/:id" element={<><Navbar /><TutorProfile /></>} />
         <Route path="/tutor-profile" element={<><Navbar /><TutorProfile /></>} />
         <Route path="/profile" element={<><Navbar /><Profile /></>} />
-        <Route path="/booking" element={<><Navbar /><Booking /></>} />
+        <Route path="/study" element={<><Navbar /><Study /></>} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<><Navbar /><AdminPanel /></>} /> 

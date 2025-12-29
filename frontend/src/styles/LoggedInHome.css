@@ -1,0 +1,468 @@
+/* =========================================
+   LOGGED-IN HOME PAGE STYLES
+   ========================================= */
+
+.logged-in-home {
+  width: 100%;
+  min-height: 100vh;
+  background: #F6F6F6;
+  position: relative;
+}
+
+/* Hero Section */
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 76px;
+  padding-bottom: 50px;
+  background: #F6F6F6;
+}
+
+.hero-logo-container {
+  width: 460px;
+  height: 294px;
+  margin-bottom: 43px;
+  /* box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25); */
+}
+
+.hero-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hero-tagline {
+  font-family: 'Agbalumo', cursive, -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 64px;
+  font-weight: 400;
+  line-height: normal;
+  text-align: center;
+  margin-bottom: 21px;
+  max-width: 994px;
+}
+
+.hero-tagline .maroon-text {
+  color: #800000;
+}
+
+.hero-tagline .gold-text {
+  color: #FFBF00;
+}
+
+.hero-tagline .green-text {
+  color: #3F5A36;
+}
+
+.hero-tagline .dark-text {
+  color: #1A1A1A;
+}
+
+.hero-subtitle {
+  max-width: 831px;
+  color: #1A1A1A;
+  text-align: center;
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: normal;
+  margin-bottom: 111px;
+}
+
+/* Who's on ELBITutors Section */
+.whos-on-section {
+  padding: 0 66px;
+  margin-bottom: 88px;
+}
+
+.whos-on-title {
+  color: #800000;
+  text-align: center;
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: normal;
+  margin-bottom: 70px;
+}
+
+.whos-on-content {
+  width: 100%;
+  max-width: 1756px;
+  margin: 0 auto;
+  background: #F6F6F6;
+  position: relative;
+  padding: 52px 80px;
+}
+
+.user-types-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 168px;
+  margin-bottom: 47px;
+}
+
+.user-type-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 21px;
+  width: 492px;
+}
+
+.user-type-icon {
+  width: 134px;
+  height: 134px;
+  border-radius: 134px;
+  flex-shrink: 0;
+  object-fit: cover;
+  background: #ddd;
+}
+
+.user-type-content {
+  flex: 1;
+  padding-top: 20px;
+}
+
+.user-type-title {
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 8px;
+}
+
+.user-type-description {
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: #1A1A1A;
+  line-height: 1.3;
+}
+
+.user-type-expanded-text {
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1A1A1A;
+  line-height: 1.4;
+  margin-top: 21px;
+  max-width: 337px;
+}
+
+.see-more-btn {
+  display: inline-flex;
+  padding: 4px 10px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 32px;
+  border: 1px solid #000;
+  background: transparent;
+  cursor: pointer;
+  margin: 0 auto;
+  display: block;
+  width: 133px;
+  height: 38px;
+}
+
+.see-more-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.see-more-btn-text {
+  color: #000;
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.chevron-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* How it Works Section */
+.how-it-works-section {
+  padding: 0 83px;
+  margin-bottom: 100px;
+}
+
+.how-it-works-title {
+  color: #800000;
+  text-align: center;
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: normal;
+  margin-bottom: 102px;
+}
+
+.steps-container {
+  max-width: 1426px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 332px);
+  gap: 85px 215px;
+  justify-content: center;
+}
+
+.step-card {
+  width: 332px;
+  height: 352.583px;
+  border-radius: 32px;
+  background: #FFF;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 33px 60px 0;
+  text-align: center;
+}
+
+.step-icon {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 19px;
+  flex-shrink: 0;
+}
+
+.step-title {
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 10px;
+}
+
+.step-description {
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: #000;
+  line-height: 1.3;
+}
+
+/* Footer */
+.footer {
+  width: 100%;
+  background: #333;
+  padding: 58px 184px;
+}
+
+.footer-container {
+  max-width: 1553px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 298px 1fr 1fr 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.footer-logo {
+  width: 298px;
+  height: 182px;
+  object-fit: contain;
+}
+
+.footer-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-section-title {
+  color: #FFF;
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: normal;
+  margin-bottom: 22px;
+}
+
+.footer-link {
+  color: #FFF;
+  font-family: 'Inter', -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: normal;
+  display: block;
+  margin-bottom: 12px;
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
+.footer-link.underlined {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 1600px) {
+  .user-types-container {
+    gap: 100px;
+  }
+
+  .steps-container {
+    grid-template-columns: repeat(3, 300px);
+    gap: 60px 150px;
+  }
+
+  .step-card {
+    width: 300px;
+  }
+}
+
+@media (max-width: 1400px) {
+  .hero-logo-container {
+    width: 380px;
+    height: 243px;
+  }
+  
+  .hero-tagline {
+    font-size: 52px;
+  }
+  
+  .hero-subtitle {
+    font-size: 26px;
+  }
+  
+  .whos-on-section,
+  .how-it-works-section {
+    padding: 0 40px;
+  }
+  
+  .footer {
+    padding: 40px 60px;
+  }
+
+  .footer-container {
+    grid-template-columns: 200px repeat(4, 1fr);
+    gap: 30px;
+  }
+
+  .footer-logo {
+    width: 200px;
+    height: auto;
+  }
+}
+
+@media (max-width: 1200px) {
+  .user-types-container {
+    flex-direction: column;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .user-type-card {
+    max-width: 600px;
+    width: 100%;
+  }
+
+  .steps-container {
+    grid-template-columns: repeat(2, 332px);
+    gap: 60px;
+  }
+
+  .footer {
+    padding: 40px;
+  }
+
+  .footer-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+  }
+
+  .footer-logo {
+    grid-column: 1 / -1;
+    margin: 0 auto;
+    width: 200px;
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding-top: 40px;
+    padding-bottom: 30px;
+  }
+  
+  .hero-logo-container {
+    width: 280px;
+    height: 179px;
+  }
+  
+  .hero-tagline {
+    font-size: 36px;
+    padding: 0 20px;
+  }
+  
+  .hero-subtitle {
+    font-size: 20px;
+    padding: 0 20px;
+    margin-bottom: 60px;
+  }
+  
+  .whos-on-section,
+  .how-it-works-section {
+    padding: 0 20px;
+  }
+  
+  .whos-on-title,
+  .how-it-works-title {
+    font-size: 32px;
+  }
+  
+  .whos-on-content {
+    padding: 30px 20px;
+  }
+  
+  .user-type-card {
+    width: 100%;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+
+  .user-type-content {
+    text-align: center;
+  }
+
+  .user-type-expanded-text {
+    max-width: 100%;
+    text-align: center;
+  }
+  
+  .steps-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .step-card {
+    width: 100%;
+    max-width: 332px;
+    margin: 0 auto;
+  }
+  
+  .footer {
+    padding: 30px 20px;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .footer-logo {
+    width: 180px;
+  }
+
+  .footer-section-title {
+    font-size: 24px;
+  }
+
+  .footer-link {
+    font-size: 18px;
+  }
+}

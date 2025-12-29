@@ -11,14 +11,29 @@ export default function Login() {
 
   // Step 1: Login with UP Mail
   const handleGoogleLogin = async () => {
-    // In a real scenario, login() would trigger the Google Popup
-    setStep(2);
-  };
+    try {
+      // 1. Trigger the actual Google Login
+      const user = await login(); 
 
-  // Step 3: Final Submission
-  const handleFinalSignup = (e) => {
-    e.preventDefault();
-    navigate('/dashboard');
+      // 2. CHECK IF USER EXISTS IN DATABASE
+      // const { data: isExistingUser } = await api.checkUser(user.email);
+      
+      // FOR TESTING PURPOSES
+      // const isExistingUser = true; 
+      const isExistingUser = false; 
+
+      if (isExistingUser) {
+        // FLOW A: User exists -> Go straight to Dashboard
+        navigate('/dashboard');
+      } else {
+        // FLOW B: New User -> Go to Onboarding (Step 2)
+        setStep(2);
+      }
+
+    } catch (error) {
+      console.error("Login failed:", error);
+      // Handle login errors here
+    }
   };
 
   return (
@@ -44,15 +59,15 @@ export default function Login() {
           </div>
         )}
 
-        {/* STEP 2: CHOICE */}
+        {/* STEP 2: CHOICE (Only shown if New User) */}
         {step === 2 && (
           <div className="login-step-container">
-            {/* UPDATED: Navigates to Basic Info */}
+            {/* Tutee Flow -> Basic Info */}
             <button onClick={() => navigate('/basic-info')} className="login-btn-green">
               I want to <strong>learn.</strong>
             </button>
             
-            {/* UPDATED: Navigates to LRC Guide (from previous request) */}
+            {/* Tutor Flow -> LRC Guide */}
             <button onClick={() => navigate('/lrc-guide')} className="login-btn-maroon">
               I want to become an <strong>LRC-Certified tutor</strong>
             </button>

@@ -1,7 +1,7 @@
 /* =========================================
    1. FONTS & RESET
    ========================================= */
-@import url('https://fonts.googleapis.com/css2?family=Agbalumo&family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
 
 :root {
   /* Color Palette */
@@ -12,10 +12,9 @@
   --text-muted: #666666;
   --bg-dark-gray: #4d4d4d;
   
-  /* Fonts */
   --font-about: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   --font-landing: 'Agbalumo', cursive, system-ui;
-  --font-inter: 'Inter', -apple-system, sans-serif;
+  --font-inter: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; 
 }
 
 * {
@@ -129,20 +128,24 @@ body {
    3. ABOUT PAGE STYLES (Segoe UI)
    ========================================= */
 .about-page-bg {
-  background-color: #ffffff; /* Changed to white */
+  background-color: #ffffff;
   min-height: 100vh;
-  padding: 0; /* Removed padding */
+  padding: 0;
   font-family: var(--font-about);
+  display: flex;
+  flex-direction: column;
 }
 
 .about-content-card {
   width: 100%;
-  max-width: 100%; /* Removes the card width limit */
+  max-width: 100%;
   margin: 0;
   background: #ffffff;
-  padding: 80px 5%; /* Adds breathing room on sides */
+  padding: 80px 5%;
   position: relative;
-  box-shadow: none; /* Removes the floating card shadow */
+  box-shadow: none;
+  flex: 1;
+  padding-bottom: 100px;
 }
 
 /* Back Button */
@@ -689,4 +692,79 @@ body {
   .hero-logo {
     width: 200px;
   }
+}
+
+
+/* =========================================
+   SHARED FOOTER STYLES
+   ========================================= */
+.footer {
+  width: 100%;
+  background: #333;
+  padding: 58px 100px;
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1553px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 298px 1fr 1fr 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.footer-logo {
+  width: 298px;
+  height: 182px;
+  object-fit: contain;
+}
+
+.footer-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-section-title {
+  color: #FFF;
+  font-family: var(--font-inter); /* Uses Segoe UI */
+  font-size: 28px;
+  font-weight: 600;
+  line-height: normal;
+  margin-bottom: 22px;
+}
+
+.footer-link {
+  color: #FFF;
+  font-family: var(--font-inter); /* Uses Segoe UI */
+  font-size: 20px;
+  font-weight: 600;
+  line-height: normal;
+  display: block;
+  margin-bottom: 12px;
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
+.footer-link.underlined {
+  text-decoration: underline;
+}
+
+/* Responsiveness */
+@media (max-width: 1400px) {
+  .footer { padding: 40px 60px; }
+  .footer-container { grid-template-columns: 200px repeat(4, 1fr); gap: 30px; }
+  .footer-logo { width: 200px; height: auto; }
+}
+@media (max-width: 1200px) {
+  .footer-container { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+  .footer-logo { grid-column: 1 / -1; margin: 0 auto 20px auto; }
+}
+@media (max-width: 768px) {
+  .footer { padding: 30px 20px; }
+  .footer-container { grid-template-columns: 1fr; gap: 30px; text-align: center; }
+  .footer-logo { width: 180px; }
 }

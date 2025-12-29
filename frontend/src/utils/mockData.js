@@ -2,7 +2,7 @@
 // mock user data
 export const mockUser = {
   name: "Maryz C",
-  email: "jpcabatingan@up.edu.ph",
+  email: "maryz@up.edu.ph",
   role: "tutee",
   degree_program: "BS Computer Science",
   classification: "Junior",
