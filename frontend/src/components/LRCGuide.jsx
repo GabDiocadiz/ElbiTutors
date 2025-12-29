@@ -31,7 +31,6 @@ const LRCGuide = () => {
           <ul className="guide-list">
             <li><span>☑</span> Clear, readable AMIS screenshots of grades;</li>
             <li><span>☑</span> E-copy of Form 5 for Midyear 2025;</li>
-            {/* Added dummy text to enable scrolling effect if needed */}
             <li><span>☑</span> Curriculum Vitae with 2x2 photo;</li>
             <li><span>☑</span> Recommendation letter from previous professor;</li>
           </ul>
