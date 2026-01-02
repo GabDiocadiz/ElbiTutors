@@ -1,163 +1,205 @@
-// Handles all User CRUD operations.
-// Authentication & authorization will be added later.
-
 import User from "../models/User.js";
 import Tutor from "../models/Tutor.js";
-import Tutee from "../models/Tutee.js";
-import TutorProfile from "../models/TutorProfile.js";
+import AuditLog from "../models/AuditLog.js";
 
-/* GET /api/users
-   Get all users (ADMIN ONLY — but auth later) */
-export const getAllUsers = async (req, res) => {
+/**
+ * @desc    Get Current User Profile
+ * @route   GET /api/users/me
+ * @access  Private
+ * @srs     4.1.2 Tutee Profile Management
+ */
+export const getUserProfile = async (req, res) => {
   try {
-    const users = await User.find();
-
-    return res.status(200).json({
-      success: true,
-      count: users.length,
-      data: users,
-    });
+    const user = await User.findById(req.user._id).select("-google_sub");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
   } catch (error) {
-    console.error("Get all users error:", error);
-    return res.status(500).json({ message: "Server error fetching users" });
+    res.status(500).json({ message: error.message });
   }
 };
 
-/*  GET /api/users/:id
-    Get a single user by ID */
-export const getUserById = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+/**
+ * @desc    Update Current User Profile
+ * @route   PUT /api/users/profile
+ * @access  Private
+ * @srs     4.1.2 Response 2: User manages own profile details
+ */
+export const updateUserProfile = async (req, res) => {
+  const { degree_program, classification, preferred_subjects } = req.body;
 
-    return res.status(200).json({ success: true, data: user });
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Update allowed fields (Cannot change email or role here)
+    if (degree_program !== undefined) user.degree_program = degree_program;
+    if (classification !== undefined) user.classification = classification;
+    if (preferred_subjects !== undefined) user.preferred_subjects = preferred_subjects;
+
+    const updatedUser = await user.save();
+    res.json(updatedUser);
   } catch (error) {
-    console.error("Get user by ID error:", error);
-    return res.status(500).json({ message: "Server error fetching user" });
+    res.status(500).json({ message: error.message });
   }
 };
 
-/*  POST /api/users
-    Create a new user (Admin creates roles manually)*/
+/**
+ * @desc    Get All Users (Admin List)
+ * @route   GET /api/users
+ * @access  Private (Admin Only)
+ * @srs     4.3.3 REQ-2: View, search, and filter all user accounts
+ */
+export const getUsers = async (req, res) => {
+  const { keyword } = req.query;
+
+  try {
+    let query = {};
+
+    // Search by Name or Email
+    if (keyword) {
+      query.$or = [
+        { name: { $regex: keyword, $options: "i" } },
+        { email: { $regex: keyword, $options: "i" } }
+      ];
+    }
+
+    const users = await User.find(query).select("-google_sub").sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * @desc    Create User (Admin Pre-provisioning)
+ * @srs     4.3.2 Stimulus 5
+ */
 export const createUser = async (req, res) => {
-  try {
-    const {
-      name,
-      email,
-      role = "tutee",
-      degree_program,
-      classification,
-      preferred_subjects,
-      specializationText,
-      specializationCodes,
-      subjectsOffered,
-      bio,
-    } = req.body;
+  const { name, email, role, degree_program } = req.body;
 
-    // Base User creation
-    const newUser = await User.create({
+  try {
+    // Normalize email to lowercase
+    const normalizedEmail = email.toLowerCase();
+
+    // 1. Validate UP Mail
+    if (!normalizedEmail.endsWith("@up.edu.ph")) {
+      return res.status(400).json({ message: "Only @up.edu.ph emails are allowed." });
+    }
+
+    const userExists = await User.findOne({ email: normalizedEmail });
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists." });
+    }
+
+    // 2. Create User
+    const user = await User.create({
       name,
-      email,
-      role,
+      email: normalizedEmail,
+      role: role || "tutee",
       degree_program,
-      classification,
-      preferred_subjects,
+      email_verified: true
     });
 
-    // If user is a tutor, create Tutor and TutorProfile docs
-    let tutorData = null;
-    if (role === "tutor") {
-      tutorData = await Tutor.create({
-        userId: newUser._id,
-        subjectsOffered: subjectsOffered || [],
-        bio: bio || "",
-        specializationText,
-        specializationCodes,
-      });
-
-      await TutorProfile.create({
-        tutorId: tutorData._id,
-        specializationText,
-        specializationCodes,
+    // 3. Handle Tutor Logic
+    if (role === 'tutor') {
+      await Tutor.create({
+        userId: user._id,
+        certified: true, 
+        subjectsOffered: []
       });
     }
 
-    // If user is a tutee, create a Tutee document
-    let tuteeData = null;
-    if (role === "tutee") {
-      tuteeData = await Tutee.create({
-        userId: newUser._id,
-        preferredSubjects: preferred_subjects || [],
-      });
+    // 4. Log Action
+    await AuditLog.create({
+      actorId: req.user._id,
+      action: "ADMIN_CREATE_USER",
+      targetUserId: user._id,
+      details: { role, email: normalizedEmail }
+    });
+
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * @desc    Update User Role
+ * @srs     4.3.3 REQ-3
+ */
+export const updateUserRole = async (req, res) => {
+  const { role, isLRCAdmin } = req.body;
+
+  try {
+    // Prevent Self-Demotion
+    if (req.params.id === req.user._id.toString()) {
+      return res.status(400).json({ message: "You cannot change your own role." });
     }
 
-    return res.status(201).json({
-      success: true,
-      message: "User created successfully",
-      user: newUser,
-      tutor: tutorData,
-      tutee: tuteeData,
-    });
-  } catch (error) {
-    console.error("Create user error:", error);
-    return res.status(500).json({ message: "Server error creating user" });
-  }
-};
-
-/* PUT /api/users/:id
-   Update user data (name, degree_program, role, ...) */
-export const updateUser = async (req, res) => {
-  try {
-    const updated = await User.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
-    if (!updated)
-      return res.status(404).json({ message: "User not found" });
-
-    return res.status(200).json({
-      success: true,
-      message: "User updated",
-      data: updated,
-    });
-  } catch (error) {
-    console.error("Update user error:", error);
-    return res.status(500).json({ message: "Server error updating user" });
-  }
-};
-
-/* DELETE /api/users/:id
-   Delete a user and all related documents*/
-export const deleteUser = async (req, res) => {
-  try {
     const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+    const oldRole = user.role;
 
-    // Delete role-specific documents
-    if (user.role === "tutor") {
-      const tutor = await Tutor.findOne({ userId: user._id });
-      if (tutor) await TutorProfile.deleteOne({ tutorId: tutor._id });
-      await Tutor.deleteOne({ userId: user._id });
+    if (role) user.role = role;
+    if (isLRCAdmin !== undefined) user.isLRCAdmin = isLRCAdmin;
+
+    await user.save();
+
+    if (role === 'tutor' && oldRole !== 'tutor') {
+        const tutorExists = await Tutor.findOne({ userId: user._id });
+        if (!tutorExists) {
+            await Tutor.create({ userId: user._id, certified: true, subjectsOffered: [] });
+        }
     }
 
-    if (user.role === "tutee") {
-      await Tutee.deleteOne({ userId: user._id });
-    }
-
-    // Delete main user
-    await User.findByIdAndDelete(user._id);
-
-    return res.status(200).json({
-      success: true,
-      message: "User and related data deleted successfully",
+    await AuditLog.create({
+      actorId: req.user._id,
+      action: "ADMIN_UPDATE_ROLE",
+      targetUserId: user._id,
+      details: { oldRole, newRole: role }
     });
+
+    res.json(user);
   } catch (error) {
-    console.error("Delete user error:", error);
-    return res.status(500).json({ message: "Server error deleting user" });
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * @desc    Deactivate/Suspend User
+ * @srs     4.8.3 REQ-5
+ */
+export const updateUserStatus = async (req, res) => {
+  const { status } = req.body; 
+
+  const validStatuses = ["active", "suspended", "inactive"];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  try {
+    // Prevent Self-Suspension
+    if (req.params.id === req.user._id.toString()) {
+      return res.status(400).json({ message: "You cannot suspend your own account." });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const oldStatus = user.status;
+    user.status = status;
+    await user.save();
+
+    await AuditLog.create({
+      actorId: req.user._id,
+      action: "ADMIN_UPDATE_STATUS",
+      targetUserId: user._id,
+      details: { oldStatus, newStatus: status }
+    });
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

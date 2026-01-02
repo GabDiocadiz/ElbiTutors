@@ -1,29 +1,25 @@
 import express from "express";
 import {
-  getAllUsers,
-  getUserById,
+  getUserProfile,
+  updateUserProfile,
+  getUsers,
   createUser,
-  updateUser,
-  deleteUser,
+  updateUserRole,
+  updateUserStatus
 } from "../controllers/userController.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Manages ONLY the Base User model.
+// --- Public/Self Routes ---
+router.get("/me", protect, getUserProfile);
+router.put("/profile", protect, updateUserProfile);
 
-// GET all users (admin-only in production)
-router.get("/", /* authMiddleware, adminOnly, */ getAllUsers);
-
-// GET a single user by ID
-router.get("/:id", /* authMiddleware, */ getUserById);
-
-// CREATE user (admin use only — staff, LRC admins)
-router.post("/", /* authMiddleware, adminOnly, */ createUser);
-
-// UPDATE base user info (names, avatar, etc.)
-router.patch("/:id", /* authMiddleware, */ updateUser);
-
-// DELETE user — admin only
-router.delete("/:id", /* authMiddleware, adminOnly, */ deleteUser);
+// --- Admin Routes ---
+// SRS 4.3 Admin Interface
+router.get("/", protect, adminOnly, getUsers);
+router.post("/", protect, adminOnly, createUser);
+router.put("/:id/role", protect, adminOnly, updateUserRole);
+router.put("/:id/status", protect, adminOnly, updateUserStatus);
 
 export default router;
