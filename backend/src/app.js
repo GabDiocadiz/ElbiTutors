@@ -1,16 +1,13 @@
-import express from 'express';
-import cors from 'cors';
+import express from "express";
+import cors from "cors";
 // import requestLogger from './middlewares/requestLogger.js';
 // import errorMiddleware from './middlewares/errorMiddleware.js';
 
-import sessionRoutes from './routes/sessionRoutes.js'
-import userRoutes from './routes/userRoutes.js';
-import tutorRoutes from './routes/tutorRoutes.js';
-import subjectRoutes from './routes/subjectRoutes.js';
-
-
-// import authRoutes from './routes/authRoutes.js';
-// import sessionRoutes from './routes/sessionRoutes.js';
+import sessionRoutes from "./routes/sessionRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import tutorRoutes from "./routes/tutorRoutes.js";
+import subjectRoutes from "./routes/subjectRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
@@ -23,18 +20,15 @@ app.use(cors()); // Enables Cross-Origin Resource Sharing
 // app.use(requestLogger);
 
 // Mount API Routes
-app.use('/api/tutors', tutorRoutes);
-app.use('/api/subjects', subjectRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/sessions')
-// TODO: Implement authRoutes
-// app.use('/api/auth', authRoutes);
-// TODO: Implement sessionRoutes
-// app.use('/api/sessions', sessionRoutes);
+app.use("/api/tutors", tutorRoutes);
+app.use("/api/subjects", subjectRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/sessions", sessionRoutes);
+app.use("/api/auth", authRoutes);
 
 // Root route for API status check
-app.get('/', (req, res) => {
-  res.send('===== ElbiTutors API is running =====');
+app.get("/", (req, res) => {
+  res.send("===== ElbiTutors API is running =====");
 });
 
 // TODO: Implement errorMiddleware

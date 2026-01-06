@@ -4,7 +4,7 @@ import {
   getMySessions, 
   updateSessionStatus 
 } from "../controllers/sessionController.js";
-import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import { protect, adminOnly } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 

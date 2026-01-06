@@ -31,10 +31,23 @@ export const bookSession = async (req, res) => {
       return res.status(400).json({ message: "Start time must be before end time." });
     }
 
-    // Optional: Max 4 hours per session
-    const durationHours = (end - start) / (1000 * 60 * 60);
+    // Optional: Max 4 hours per session ({ end - start } / { 1000 * 60 * 60 })
+    const durationHours = (end - start) / 3600000;
     if (durationHours > 4) {
       return res.status(400).json({ message: "Session cannot exceed 4 hours." });
+    }
+
+    // --- 1.5. SESSION LIMIT CHECK (SRS Constraint) ---
+    // Rule: Tutees are limited to a maximum of three active sessions.
+    const activeSessionsCount = await Session.countDocuments({
+      createdByTuteeId: req.user._id,
+      status: { $in: ["pending", "approved"] }
+    });
+
+    if (activeSessionsCount >= 3) {
+      return res.status(400).json({ 
+        message: "Booking failed. You have reached the maximum limit of 3 active sessions (pending or approved). Please complete a session before booking a new one." 
+      });
     }
 
     // --- 2. GROUP SESSION LOGIC (SRS 4.7) ---
