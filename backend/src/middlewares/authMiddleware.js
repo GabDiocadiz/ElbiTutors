@@ -1,45 +1,58 @@
-const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const { storage, fileFilter } = require('./uploadMiddleware');
-// const config = require('config');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
-// module.exports = function (req,res,next){
-//     const token = req.header('x-auth-token');
-//     if(!token) return res.status(401).send('Access denied. No token provided');
+export const protect = async (req, res, next) => {
+    let token;
 
-//     try{
-//         const decoded = jwt.verify(token, config.get('jwtPrivateKey'));
-//         req.user = decoded;
-//         next();
-//     }
-//     catch(ex){
-//         res.status(400).send('Invalid token.');
-//     }
-// }
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        try {
+            // Get token from header
+            token = req.headers.authorization.split(' ')[1];
 
-module.exports = function(req,res,next){
-    const token = req.header('x-auth-token');
+            // Verify token
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if(!token){
-        const error = new Error('Access denied. No token provided.');
+            // Get user from the token, exclude password
+            req.user = await User.findById(decoded.id || decoded._id).select('-password');
+            
+            if (!req.user) {
+                const error = new Error('Not authorized, user not found');
+                error.statusCode = 401;
+                return next(error);
+            }
+
+            next();
+        } catch (error) {
+            console.error(error);
+            const err = new Error('Not authorized, token failed');
+            err.statusCode = 401;
+            next(err);
+        }
+    }
+
+    if (!token) {
+        const error = new Error('Not authorized, no token');
         error.statusCode = 401;
-        return next(error); // Sends to errorMiddleware
-    }
-
-    try{
-        const decoded = jwt.verify(token,process.env.JWT_SECRET || 'your_fallback_secret');
-        req.user = decoded;
-        next();
-    }
-    catch{
-        const error = new Error('Invalid token.');
-        error.statusCode = 400;
         next(error);
     }
 };
-const upload = multer({
-    storage: storage,
-    limits: { filesize: 5 * 1024 * 1024 }, //5MB limit
-    fileFilter: fileFilter,
-});
-exports.upload = upload;
+
+export const adminOnly = (req, res, next) => {
+    if (req.user && (req.user.role === 'admin' || req.user.isLRCAdmin)) {
+        next();
+    } else {
+        const error = new Error('Not authorized as an admin');
+        error.statusCode = 403;
+        next(error);
+    }
+};
+
+export const tutorOnly = (req, res, next) => {
+    if (req.user && (req.user.role === 'tutor' || req.user.role === 'admin' || req.user.isLRCAdmin)) {
+        next();
+    } else {
+        const error = new Error('Not authorized as a tutor');
+        error.statusCode = 403;
+        next(error);
+    }
+};

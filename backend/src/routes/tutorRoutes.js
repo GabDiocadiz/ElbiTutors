@@ -6,7 +6,7 @@ import {
 } from "../controllers/tutorController.js";
 
 // Middleware
-import { protect, tutorOnly } from "../middleware/authMiddleware.js";
+import { protect, tutorOnly } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
