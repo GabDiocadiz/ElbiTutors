@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     manageSessions: { type: Boolean, default: false },
   },
   preferred_subjects: [String],
+  warningCount: { type: Number, default: 0 },
   google_sub: { type: String },
   email_verified: { type: Boolean, default: false },
   picture: { type: String },

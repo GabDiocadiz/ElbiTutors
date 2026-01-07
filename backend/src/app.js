@@ -8,6 +8,7 @@ import userRoutes from "./routes/userRoutes.js";
 import tutorRoutes from "./routes/tutorRoutes.js";
 import subjectRoutes from "./routes/subjectRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import reportRoutes from './routes/reportRoutes.js';
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use("/api/subjects", subjectRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/auth", authRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Root route for API status check
 app.get("/", (req, res) => {
