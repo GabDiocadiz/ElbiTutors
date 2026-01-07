@@ -1,14 +1,17 @@
-const express = require('express');
-const router = express.Router();
-const authController = require('../controllers/authController');
-const validateBody = require('../middlewares/validateBody');
+import express from 'express';
+import { register, login } from '../controllers/authController.js';
+// import validateBody from '../middlewares/validateBody.js';
 // Assume you have Joi schemas defined in src/validation/authValidation.js
-const { registerSchema, loginSchema } = require('../validation/authValidation');
+// import { registerSchema, loginSchema } from '../validation/authValidation.js';
+
+const router = express.Router();
 
 // User Registration: POST /api/auth/register
-router.post('/register', validateBody(registerSchema), authController.register);
+// router.post('/register', validateBody(registerSchema), register);
+router.post('/register', register);
 
 // User Login: POST /api/auth/login
-router.post('/login', validateBody(loginSchema), authController.login);
+// router.post('/login', validateBody(loginSchema), login);
+router.post('/login', login);
 
-module.exports = router;
+export default router;

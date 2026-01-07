@@ -7,7 +7,7 @@ import {
   updateUserRole,
   updateUserStatus
 } from "../controllers/userController.js";
-import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import { protect, adminOnly } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 

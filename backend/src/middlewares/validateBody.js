@@ -1,12 +1,11 @@
-const validateBody = (schema) =>{
-    return(req,res,next)=>{
-        
-        const{error} = schema.validate(req.body, {
+const validateBody = (schema) => {
+    return (req, res, next) => {
+        const { error } = schema.validate(req.body, {
             abortEarly: false,
             allowUnknown: true
         });
 
-        if (error){
+        if (error) {
             const errorMessage = error.details
                 .map((detail) => detail.message.replace(/"/g, ''))
                 .join(', ');
@@ -20,4 +19,4 @@ const validateBody = (schema) =>{
     };
 };
 
-module.exports = validateBody;
+export default validateBody;
