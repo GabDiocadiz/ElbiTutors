@@ -89,7 +89,7 @@ export const googleLogin = async (req, res, next) => {
         // 4. Generate JWT for our API
         const token = jwt.sign(
             { id: user._id, role: user.role, isLRCAdmin: user.isLRCAdmin },
-            process.env.JWT_SECRET || 'your_fallback_secret',
+            process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 

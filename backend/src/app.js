@@ -25,7 +25,6 @@ app.use("/api/tutors", tutorRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/sessions", sessionRoutes);
-app.use("/api/sessions", sessionRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/reports", reportRoutes);
 
