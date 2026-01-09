@@ -55,7 +55,8 @@ export const getReports = async (req, res) => {
  * @desc    Resolve a report & Issue Warning
  * @route   PUT /api/reports/:id/resolve
  * @access  Private (Admin)
- * @srs     4.8.3 REQ-5 & REQ-6 ("Three Warnings" Rule)
+ * @srs     4.8.3 REQ-5: Admin actions (warnings, suspension)
+ * @srs     4.8.1: "After three valid reports, the account shall be temporarily terminated."
  */
 export const resolveReport = async (req, res) => {
   try {
