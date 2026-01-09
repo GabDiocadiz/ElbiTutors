@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SubjectDropdown from '../components/SubjectDropdown';
 import '../styles/Study.css';
 import '../styles/design.css';
 
 const Study = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedSubjects, setSelectedSubjects] = useState([]);
 
   // Mock Data for Tutors
   const tutors = [
@@ -23,7 +24,8 @@ const Study = () => {
   // Filtering Logic
   const filteredTutors = tutors.filter(tutor => {
     const matchesName = tutor.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = selectedSubject === '' || tutor.courses.includes(selectedSubject);
+    const matchesSubject = selectedSubjects.length === 0 ||
+      selectedSubjects.some(subject => tutor.courses.includes(subject));
     return matchesName && matchesSubject;
   });
 
@@ -54,17 +56,11 @@ const Study = () => {
           </div>
 
           <div className="filter-wrapper">
-            <select 
-              className="subject-dropdown"
-              value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
-            >
-              <option value="">Select the subject(s) you want to study</option>
-              <option value="CMSC">Computer Science (CMSC)</option>
-              <option value="MATH">Mathematics (MATH)</option>
-              <option value="CHEM">Chemistry (CHEM)</option>
-              <option value="BIO">Biology (BIO)</option>
-            </select>
+            <SubjectDropdown
+              selectedSubjects={selectedSubjects}
+              onChange={setSelectedSubjects}
+              placeholder="Select the subject(s) you want to study"
+            />
           </div>
         </div>
 

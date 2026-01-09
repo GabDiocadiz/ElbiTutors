@@ -3,11 +3,13 @@
   --uplb-maroon: #800000;
   --uplb-green: #2d5a27;
   --uplb-gold: #FFBF00;
-  --status-green: #388E3C;
-  --action-cancel: #881b1b;
-  --action-report: #E65100;
-  --status-gray: #9E9E9E;
+  --status-green: #2E7D32;
+  --status-gray: #959595;
+  --action-cancel: #851C1D;
+  --action-evaluate: #851C1D;
+  --action-report: #DF602E;
   --bg-light: #F2F2F2;
+  --text-cream: #F9F6F1;
 }
 
 .profile-page-bg {
@@ -82,7 +84,7 @@
 /* ================= TUTOR GRID INFO ================= */
 .tutor-info-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr; /* Left column wider, right column narrower */
+  grid-template-columns: 1.5fr 1fr;
   gap: 20px;
   margin-bottom: 50px;
 }
@@ -98,7 +100,7 @@
 }
 
 .card-title-red {
-  color: #A03030; /* Lighter maroon for headers inside cards */
+  color: #A03030;
   font-weight: 700;
   margin-bottom: 15px;
   font-size: 1.1rem;
@@ -113,7 +115,7 @@
 
 .exp-card {
   grid-column: 2 / 3;
-  grid-row: 1 / 3; /* Spans two rows height-wise visually */
+  grid-row: 1 / 3;
 }
 
 .courses-card {
@@ -134,105 +136,164 @@
   margin-top: 40px;
 }
 
-/* If Tutee, center the booking section more */
 .tutee-layout {
   max-width: 900px;
   margin: 40px auto;
 }
 
 .section-title {
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 2.25rem;
+  font-weight: 700;
   margin-bottom: 25px;
   color: #000;
+  font-family: Inter, -apple-system, Roboto, Helvetica, sans-serif;
 }
 
 .booking-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 24px;
 }
 
 .booking-header-row {
   display: flex;
   justify-content: flex-end;
-  padding-right: 40px;
-  margin-bottom: -5px;
+  align-items: center;
+  gap: 148px;
+  margin-bottom: 10px;
+  padding-right: 32px;
 }
 
 .col-header {
+  font-family: Inter, -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 24px;
   font-weight: 700;
-  font-size: 1.1rem;
-  width: 120px; /* Fixed width to align with buttons below */
+  color: #000;
   text-align: center;
-  margin-left: 10px;
+  min-width: 170px;
 }
 
 .booking-item {
-  background-color: #E0E0E0; /* Light gray bars */
-  border-radius: 15px;
-  padding: 20px 30px;
+  background-color: #D9D9D9;
+  border-radius: 20px;
+  padding: 20px 52px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 70px;
+  gap: 10px;
 }
 
 .booking-course-name {
+  font-family: Inter, -apple-system, Roboto, Helvetica, sans-serif;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 24px;
   color: #000;
+  text-align: center;
+  flex: 1;
 }
 
 .booking-actions {
   display: flex;
-  gap: 15px;
+  align-items: center;
+  gap: 10px;
 }
 
-/* Pills Styling */
-.status-pill, .action-pill {
-  padding: 8px 0;
-  width: 120px; /* Fixed width for uniformity */
-  border-radius: 20px;
+/* Status Badge Styling */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 109px;
+  height: 55px;
+  border-radius: 27.5px;
+  font-family: Inter, -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-cream);
   text-align: center;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: white;
-  border: none;
-  display: inline-block;
 }
 
-.action-pill {
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.action-pill:hover {
-  opacity: 0.9;
-}
-
-/* Color Modifiers */
-.status-active, .status-done {
+.status-active {
   background-color: var(--status-green);
 }
 
-.status-evaluate {
-  background-color: #792e2e; /* Darker maroon for evaluate status */
+.status-done {
+  background-color: var(--status-gray);
+}
+
+/* Action Button Styling */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 109px;
+  height: 55px;
+  border-radius: 27.5px;
+  border: none;
+  font-family: Inter, -apple-system, Roboto, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-cream);
+  text-align: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.action-button:hover {
+  opacity: 0.9;
+}
+
+.action-button:active {
+  transform: translateY(1px);
 }
 
 .action-cancel {
   background-color: var(--action-cancel);
 }
 
+.action-evaluate {
+  background-color: var(--action-evaluate);
+}
+
 .action-report {
   background-color: var(--action-report);
 }
 
-/* Gray styling for Done/Past items if needed */
-.status-done {
-  background-color: var(--status-gray);
+/* Responsive */
+@media (max-width: 1200px) {
+  .booking-header-row {
+    gap: 100px;
+  }
 }
 
-/* Responsive */
+@media (max-width: 1024px) {
+  .booking-header-row {
+    gap: 60px;
+    padding-right: 20px;
+  }
+
+  .col-header {
+    font-size: 20px;
+    min-width: 120px;
+  }
+
+  .booking-item {
+    padding: 15px 30px;
+  }
+
+  .booking-course-name {
+    font-size: 20px;
+  }
+
+  .status-badge,
+  .action-button {
+    width: 95px;
+    height: 48px;
+    font-size: 14px;
+  }
+}
+
 @media (max-width: 768px) {
   .profile-header {
     flex-direction: column;
@@ -240,21 +301,67 @@
   }
 
   .tutor-info-grid {
-    grid-template-columns: 1fr; /* Stack columns on mobile */
+    grid-template-columns: 1fr;
   }
 
   .exp-card {
     grid-column: auto;
     grid-row: auto;
   }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
   
   .booking-item {
     flex-direction: column;
+    height: auto;
     gap: 15px;
     text-align: center;
+    padding: 20px;
+  }
+
+  .booking-actions {
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .booking-header-row {
     display: none;
+  }
+
+  .booking-course-name {
+    font-size: 18px;
+  }
+
+  .status-badge,
+  .action-button {
+    width: 100px;
+    height: 45px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-name {
+    font-size: 1.75rem;
+  }
+
+  .profile-email {
+    font-size: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .booking-course-name {
+    font-size: 16px;
+  }
+
+  .status-badge,
+  .action-button {
+    width: 90px;
+    height: 42px;
+    font-size: 13px;
   }
 }
