@@ -33,8 +33,8 @@ const Study = () => {
   const newTutors = filteredTutors.filter(t => t.type === 'new');
 
   const handleVisitTutor = (tutorId) => {
-    // Navigate to the public profile view of the tutor
-    navigate(`/tutor/${tutorId}`);
+  // Update to match the route defined in TUTOR_PROFILE_COMPONENTS.md
+  navigate(`/tutor/${tutorId}/view`); 
   };
 
   return (

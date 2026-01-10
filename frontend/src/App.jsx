@@ -10,6 +10,7 @@ import TermsAndConditions from './components/TermsAndConditions';
 import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
 import TutorProfile from './pages/TutorProfile';
+import TutorProfileView from './pages/TutorProfileView';
 import Profile from './pages/Profile';
 import Study from './pages/Study';
 import Navbar from './components/Navbar';
@@ -39,6 +40,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tutors/:id" element={<><Navbar /><TutorProfile /></>} />
         <Route path="/tutor-profile" element={<><Navbar /><TutorProfile /></>} />
+        <Route path="/tutor/:tutorId/view" element={<TutorProfileView />} />
         <Route path="/profile" element={<><Navbar /><Profile /></>} />
         <Route path="/study" element={<><Navbar /><Study /></>} />
 
