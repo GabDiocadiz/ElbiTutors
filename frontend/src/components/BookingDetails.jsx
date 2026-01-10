@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import CancellationModal from './CancellationModal'; // Ensure the path is correct
 
 const BookingDetails = ({ sessionData, onClose }) => {
+  const [isCancelling, setIsCancelling] = useState(false);
+
   if (!sessionData) return null;
 
-  // Helper to extract course code and tutor name from the combined string "COURSE by Tutor"
   const getCourseAndTutor = (courseString) => {
     if (!courseString) return { course: 'N/A', tutor: 'N/A' };
     const parts = courseString.split(' by ');
@@ -15,15 +17,24 @@ const BookingDetails = ({ sessionData, onClose }) => {
 
   const { course, tutor } = getCourseAndTutor(sessionData.course);
 
+  // If the user clicks "Cancel Booking", we show the CancellationModal instead
+  if (isCancelling) {
+    return (
+      <CancellationModal 
+        sessionData={sessionData} 
+        onClose={() => setIsCancelling(false)} // Go back to details
+        onConfirm={onClose} // Close everything after successful cancellation
+      />
+    );
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="booking-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className="booking-modal-header" style={{ marginBottom: '20px' }}>
           <h2 className="booking-modal-title">Session Details</h2>
         </div>
 
-        {/* Content */}
         <div className="session-details-content" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <div className="detail-row">
             <strong>Course:</strong> {course}
@@ -35,7 +46,6 @@ const BookingDetails = ({ sessionData, onClose }) => {
             <strong>Status:</strong> <span style={{ textTransform: 'capitalize' }}>{sessionData.status}</span>
           </div>
           
-          {/* Mock details */}
           <div className="detail-row">
             <strong>Date:</strong> October 24, 2025
           </div>
@@ -50,14 +60,14 @@ const BookingDetails = ({ sessionData, onClose }) => {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="booking-modal-actions" style={{ justifyContent: 'center', marginTop: '30px' }}>
+        <div className="booking-modal-actions" style={{ justifyContent: 'center', marginTop: '30px', gap: '10px', display: 'flex' }}>
+          {/* Trigger the Cancellation Modal */}
           <button 
             className="booking-btn booking-btn-cancel" 
-            onClick={onClose}
+            onClick={() => setIsCancelling(true)}
             style={{ width: '150px' }}
           >
-            Close
+            Cancel Booking
           </button>
         </div>
       </div>
