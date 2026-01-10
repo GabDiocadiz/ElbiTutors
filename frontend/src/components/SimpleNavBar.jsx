@@ -1,5 +1,6 @@
 import logoLightMode from '../assets/logo_lightmode.png';
-import '../styles/SimpleNavBar.css';
+// Styling
+import '../styles/Components.css';
 
 export default function SimpleNavBar() {
   return (

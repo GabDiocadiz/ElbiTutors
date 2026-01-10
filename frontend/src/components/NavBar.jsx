@@ -1,8 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import '../styles/design.css';
+
 import logoDarkMode from '../assets/logo_darkmode.png';
 import userPlaceholder from '../assets/user_placeholder.png';
+
+// Styling
+import '../styles/Components.css';
+import '../styles/design.css';
 
 export default function Navbar() {
   const { user } = useAuth();

@@ -1,15 +1,35 @@
-import React, { useState } from 'react';
-import '../styles/EvaluationForm.css';
+// Styling
+import '../styles/Components.css';
 
-const EvaluationForm = ({ sessionData, onClose, onSubmit }) => {
+import React, { useState } from 'react';
+
+const EvaluationForm = ({ sessionData, onClose, onSubmit, courseCode, tutorName }) => {
   const [ratings, setRatings] = useState({
-    question1: null,
-    question2: null,
-    question3: null,
-    question4: null,
-    question5: null,
+    q1: null,
+    q2: null,
+    q3: null,
+    q4: null,
+    q5: null,
   });
   const [comments, setComments] = useState('');
+
+  // Parse course and tutor from sessionData if string format is "Course by Tutor"
+  let displayCourse = courseCode;
+  let displayTutor = tutorName;
+
+  if (sessionData?.course && !displayCourse && !displayTutor) {
+    if (sessionData.course.includes(' by ')) {
+      const parts = sessionData.course.split(' by ');
+      displayCourse = parts[0];
+      displayTutor = parts[1];
+    } else {
+      displayCourse = sessionData.course;
+    }
+  }
+
+  // Fallbacks
+  displayCourse = displayCourse || sessionData?.course || 'Course Code';
+  displayTutor = displayTutor || sessionData?.tutorName || 'Tutor Name';
 
   const handleRatingChange = (question, value) => {
     setRatings(prev => ({ ...prev, [question]: value }));
@@ -24,11 +44,11 @@ const EvaluationForm = ({ sessionData, onClose, onSubmit }) => {
   };
 
   const questions = [
-    { id: 'question1', text: 'How would you rate the tutor\'s knowledge of the subject?' },
-    { id: 'question2', text: 'How effective was the tutoring session in helping you understand the material?' },
-    { id: 'question3', text: 'How would you rate the tutor\'s communication and teaching skills?' },
-    { id: 'question4', text: 'How well did the tutor address your questions and concerns?' },
-    { id: 'question5', text: 'How likely are you to recommend this tutor to other students?' },
+    { id: 'q1', text: 'Was the tutor punctual and well-prepared for the session?' },
+    { id: 'q2', text: 'Did the tutor explain the concepts clearly and answer your questions effectively?' },
+    { id: 'q3', text: 'Was the tutor patient, respectful, and encouraging throughout the session?' },
+    { id: 'q4', text: 'Did this session improve your understanding of the subject matter?' },
+    { id: 'q5', text: 'How would you rate your overall learning experience with this tutor?' },
   ];
 
   return (
@@ -43,17 +63,14 @@ const EvaluationForm = ({ sessionData, onClose, onSubmit }) => {
           <div className="evaluation-divider"></div>
 
           <div className="session-details">
-            <p><strong>Tutor:</strong> {sessionData.tutor}</p>
-            <p><strong>Tutee:</strong> {sessionData.tutee}</p>
-            <p><strong>Course:</strong> {sessionData.course}</p>
-            <p><strong>Topic:</strong> {sessionData.topic}</p>
-            <p><strong>Date:</strong> {sessionData.date}</p>
+            <p><strong>Tutor:</strong> {displayTutor}</p>
+            <p><strong>Course:</strong> {displayCourse}</p>
           </div>
 
           <div className="evaluation-divider"></div>
 
           <div className="instructions">
-            <strong>Instructions:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus et ullamcorper lorem, non dictum enim.
+            <strong>Instructions:</strong> Please evaluate your tutoring session based on the tutor's behavior and your learning experience. Your honest feedback helps us improve the quality of our peer tutoring services.
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -68,7 +85,7 @@ const EvaluationForm = ({ sessionData, onClose, onSubmit }) => {
             <div className="questions-container">
               {questions.map((question, index) => (
                 <div key={question.id} className="question-row">
-                  <label className="question-label">QUESTION {index + 1} -</label>
+                  <label className="question-label">QUESTION {index + 1} - {question.text}</label>
                   <div className="rating-options">
                     {[1, 2, 3, 4, 5].map((value) => (
                       <button
@@ -88,10 +105,10 @@ const EvaluationForm = ({ sessionData, onClose, onSubmit }) => {
               <label className="comments-label">COMMENTS:</label>
               <textarea
                 className="comments-textarea"
-                placeholder="Anything else you would like to say?"
+                placeholder="Share any additional feedback, suggestions, or highlights about your session..."
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
-                rows={8}
+                rows={5}
               />
             </div>
 

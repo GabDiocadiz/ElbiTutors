@@ -1,5 +1,7 @@
+// Styling
+import '../styles/Components.css';
+
 import React, { useState, useRef, useEffect } from 'react';
-import '../styles/SubjectDropdown.css';
 
 const SUBJECTS = [
   'AAE', 'ABE', 'AGRI', 'ANSC', 'BIO', 'BOT', 'CE', 'ChE', 

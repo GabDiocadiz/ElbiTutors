@@ -1,27 +1,118 @@
-import { useState } from 'react';
-import '../styles/BookingModal.css';
+// Styling
+import '../styles/Components.css';
+
+import { useState, useRef, useEffect } from 'react';
+
+const COURSE_CODES_LIST = ['AAE', 'ABE', 'AGRI', 'ANSC', 'BIO', 'BOT', 'CE', 'ChE', 'CHEM', 'CMSC', 'ECON', 'EE', 'ENSC', 'FBS', 'FOR', 'FPPS', 'FRM', 'Math', 'MCB', 'PHYS', 'SFI', 'STAT'];
+
+// Generate time options from 7:00 AM to 7:00 PM with 30-minute intervals
+const TIME_OPTIONS = [];
+for (let i = 7; i <= 19; i++) {
+  const hour = i > 12 ? i - 12 : i;
+  const ampm = i >= 12 ? 'PM' : 'AM';
+  
+  // :00 slot
+  TIME_OPTIONS.push(`${hour}:00 ${ampm}`);
+  
+  // :30 slot (skip for 7:00 PM to keep it as end time if strictly 7pm is the limit)
+  if (i < 19) {
+    TIME_OPTIONS.push(`${hour}:30 ${ampm}`);
+  }
+}
+
+// Helper to convert time string to minutes for comparison
+const timeToMinutes = (timeStr) => {
+  if (!timeStr) return 0;
+  const [time, period] = timeStr.split(' ');
+  let [hours, minutes] = time.split(':').map(Number);
+  
+  if (period === 'PM' && hours !== 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+  
+  return hours * 60 + minutes;
+};
 
 export default function BookingModal({ tutorName, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
-    courseCode: '',
-    topics: '',
+    courseCode: [], // Changed to array for multi-select
+    topics: '',     // Changed to string for text input
     date: '',
-    timeFrom: '2:00 PM',
-    timeTo: '4:00 PM',
+    timeFrom: '7:00 AM', // Default to start of range
+    timeTo: '8:00 AM',   // Default to 1 hour later
     location: '',
-    participants: '5 PERSON'
+    participants: '1 PERSON' // Default set to 1 PERSON
   });
+  
+  const [showCourseDropdown, setShowCourseDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Calculate minimum date (2 days from today)
+  const today = new Date();
+  const minDateObj = new Date(today);
+  minDateObj.setDate(today.getDate() + 2);
+  const minDate = minDateObj.toISOString().split('T')[0];
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowCourseDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'date') {
+      const selectedDate = new Date(value);
+      const day = selectedDate.getUTCDay();
+      
+      // Check if it's a weekend (0 = Sunday, 6 = Saturday)
+      if (day === 0 || day === 6) {
+        alert("Please select a weekday (Monday to Friday).");
+        return; // Don't update state if weekend
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
 
+  const handleCourseToggle = (code) => {
+    setFormData(prev => {
+      const currentCodes = prev.courseCode || [];
+      const newCodes = currentCodes.includes(code)
+        ? currentCodes.filter(c => c !== code)
+        : [...currentCodes, code];
+      return { ...prev, courseCode: newCodes };
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validate Course Code Selection
+    if (formData.courseCode.length === 0) {
+      alert("Please select at least one Course Code.");
+      return;
+    }
+
+    // Validate Time
+    const startMinutes = timeToMinutes(formData.timeFrom);
+    const endMinutes = timeToMinutes(formData.timeTo);
+
+    if (endMinutes <= startMinutes) {
+      alert("End time must be after start time.");
+      return;
+    }
+
+    // If all validations pass, trigger onSubmit
     onSubmit(formData);
   };
 
@@ -38,17 +129,37 @@ export default function BookingModal({ tutorName, onClose, onSubmit }) {
         </div>
 
         <form onSubmit={handleSubmit} className="booking-form">
-          <div className="form-group">
+          <div className="form-group" ref={dropdownRef}>
             <label className="form-label">Course Code*</label>
-            <input
-              type="text"
-              name="courseCode"
-              className="form-input"
-              placeholder="Please enter the course code (e.g. CMSC 21)"
-              value={formData.courseCode}
-              onChange={handleChange}
-              required
-            />
+            <div 
+              className="custom-multiselect" 
+              onClick={() => setShowCourseDropdown(!showCourseDropdown)}
+            >
+              <div className={`selected-topics ${formData.courseCode.length === 0 ? 'placeholder' : ''}`}>
+                {formData.courseCode.length > 0 ? formData.courseCode.join(', ') : 'Select course codes...'}
+              </div>
+              <span className="dropdown-arrow">▼</span>
+            </div>
+            
+            {showCourseDropdown && (
+              <div className="topics-dropdown">
+                {COURSE_CODES_LIST.map(code => (
+                  <div 
+                    key={code} 
+                    className="topic-option" 
+                    onClick={() => handleCourseToggle(code)}
+                  >
+                    <input 
+                      type="checkbox" 
+                      checked={formData.courseCode.includes(code)} 
+                      readOnly 
+                      style={{ marginRight: '10px' }}
+                    />
+                    <span>{code}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="form-group">
@@ -57,7 +168,7 @@ export default function BookingModal({ tutorName, onClose, onSubmit }) {
               type="text"
               name="topics"
               className="form-input"
-              placeholder="example: UPLB Main Library"
+              placeholder="e.g. Singly Linked Lists"
               value={formData.topics}
               onChange={handleChange}
               required
@@ -69,15 +180,14 @@ export default function BookingModal({ tutorName, onClose, onSubmit }) {
               <label className="form-label">Date*</label>
               <div className="date-input-wrapper">
                 <input
-                  type="text"
+                  type="date"
                   name="date"
                   className="form-input date-input"
-                  placeholder="dd/mm/yyyy"
                   value={formData.date}
                   onChange={handleChange}
+                  min={minDate}
                   required
                 />
-                <span className="calendar-icon">📅</span>
               </div>
             </div>
 
@@ -92,11 +202,9 @@ export default function BookingModal({ tutorName, onClose, onSubmit }) {
                     value={formData.timeFrom}
                     onChange={handleChange}
                   >
-                    <option>1:00 PM</option>
-                    <option>2:00 PM</option>
-                    <option>3:00 PM</option>
-                    <option>4:00 PM</option>
-                    <option>5:00 PM</option>
+                    {TIME_OPTIONS.map((time) => (
+                      <option key={`from-${time}`} value={time}>{time}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="time-input-group">
@@ -107,11 +215,9 @@ export default function BookingModal({ tutorName, onClose, onSubmit }) {
                     value={formData.timeTo}
                     onChange={handleChange}
                   >
-                    <option>2:00 PM</option>
-                    <option>3:00 PM</option>
-                    <option>4:00 PM</option>
-                    <option>5:00 PM</option>
-                    <option>6:00 PM</option>
+                    {TIME_OPTIONS.map((time) => (
+                      <option key={`to-${time}`} value={time}>{time}</option>
+                    ))}
                   </select>
                 </div>
               </div>

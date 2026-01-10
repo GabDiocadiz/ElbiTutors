@@ -1,4 +1,5 @@
-import '../styles/SessionBookedModal.css';
+// Styling
+import '../styles/Components.css';
 
 export default function SessionBookedModal({ onClose, sessionData }) {
   const defaultSessionData = {
@@ -44,9 +45,9 @@ export default function SessionBookedModal({ onClose, sessionData }) {
 
         <div className="session-booked-divider"></div>
 
-        <p className="session-cancel-text">
+        {/* <p className="session-cancel-text">
           Changed your mind? <button className="cancel-link">Cancel.</button>
-        </p>
+        </p> */}
       </div>
     </div>
   );

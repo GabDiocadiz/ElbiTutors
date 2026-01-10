@@ -1,4 +1,5 @@
-import '../styles/SubmitModal.css';
+// Styling
+import '../styles/Components.css';
 
 export default function SubmitModal({ onClose, title = "Submitted", message = "Thank you for your response" }) {
   return (

@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+// Styling
+import '../styles/Components.css';
 import '../styles/design.css';
 
 const LRCGuide = () => {
