@@ -1,0 +1,770 @@
+/* =========================================
+   1. FONTS & RESET
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
+
+:root {
+  /* Color Palette */
+  --uplb-maroon: #800000;
+  --uplb-green: #2d5a27;
+  --uplb-gold: #FFBF00;
+  --text-main: #333333;
+  --text-muted: #666666;
+  --bg-dark-gray: #4d4d4d;
+  
+  --font-about: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-landing: 'Agbalumo', cursive, system-ui;
+  --font-inter: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; 
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-inter);
+}
+
+/* =========================================
+   2. NAVBAR STYLES
+   ========================================= */
+.navbar {
+  width: 100%;
+  height: 80px;
+  background: var(--uplb-maroon);
+  position: relative;
+}
+
+.navbar-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  position: relative;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-image {
+  width: 113px;
+  height: 69px;
+  object-fit: contain;
+}
+
+.navbar-menu {
+  display: flex;
+  gap: 25px;
+  position: absolute;
+  left: 439px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.nav-button {
+  display: inline-flex;
+  padding: 13px 27px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 36px;
+  background: var(--uplb-maroon);
+  color: #FFF;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  min-width: 123px;
+  height: 55px;
+}
+
+.nav-button:hover {
+  opacity: 0.9;
+}
+
+.nav-button.active {
+  background: #FFF;
+  color: #800020;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 29px;
+  margin-left: auto;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.user-email {
+  color: #FFF;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.user-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =========================================
+   3. ABOUT PAGE STYLES (Segoe UI)
+   ========================================= */
+.about-page-bg {
+  background-color: #ffffff;
+  min-height: 100vh;
+  padding: 0;
+  font-family: var(--font-about);
+  display: flex;
+  flex-direction: column;
+}
+
+.about-content-card {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  background: #ffffff;
+  padding: 80px 5%;
+  position: relative;
+  box-shadow: none;
+  flex: 1;
+  padding-bottom: 100px;
+}
+
+/* Back Button */
+.back-button {
+  position: absolute;
+  top: 30px;
+  left: 40px; /* Adjusted slightly for full-width layout */
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-about);
+  z-index: 10;
+}
+
+.back-button:hover {
+  color: var(--uplb-maroon);
+}
+
+.back-icon {
+  margin-right: 8px;
+  font-size: 1.2rem;
+}
+
+/* Text Headers */
+.text-section {
+  max-width: 1000px; /* Keeps text readable in the center */
+  margin: 0 auto 50px auto;
+}
+
+.header-maroon {
+  color: var(--uplb-maroon);
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+}
+
+.header-green {
+  color: var(--uplb-green);
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+}
+
+.body-text {
+  color: var(--text-main);
+  line-height: 1.6;
+  font-size: 1.1rem;
+  text-align: justify;
+}
+
+/* About Us / Team Section */
+.about-us-container {
+  max-width: 1000px; /* Keeps content centered */
+  margin: 20px auto 0 auto;
+  text-align: center;
+}
+
+.sub-header {
+  color: var(--text-muted);
+  margin-bottom: 40px;
+}
+
+.team-inner-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 50px;
+  max-width: 700px;
+  margin: 0 auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.team-logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.team-logo-img {
+  width: 180px;
+  height: auto;
+  object-fit: contain;
+}
+
+.group-name {
+  font-size: 1.8rem;
+  letter-spacing: 5px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #222;
+}
+
+.group-description {
+  margin-bottom: 20px;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.text-bold-maroon {
+  color: var(--uplb-maroon);
+  font-weight: 700;
+}
+
+.group-mission {
+  font-size: 0.95rem;
+  color: #888;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* =========================================
+   4. HOME PAGE STYLES
+   ========================================= */
+.landing-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.landing-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 70px;
+}
+
+.landing-logo-container {
+  width: 460px;
+  height: auto;
+  margin-bottom: 40px;
+}
+
+.landing-logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.landing-title {
+  font-family: var(--font-landing);
+  font-size: 42px;
+  line-height: 1.2;
+  text-align: center;
+  margin-bottom: 30px;
+  max-width: 1000px;
+}
+
+.landing-title .maroon { color: var(--uplb-maroon); }
+.landing-title .gold   { color: var(--uplb-gold); }
+.landing-title .green  { color: #3F5A36; }
+.landing-title .dark   { color: #1A1A1A; }
+
+.landing-subtitle {
+  max-width: 830px;
+  color: #1A1A1A;
+  text-align: center;
+  font-family: var(--font-inter);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 40px;
+}
+
+.cta-button-link {
+  text-decoration: none;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 45px;
+}
+
+.cta-button {
+  width: 266px;
+  height: 77px;
+  background: var(--uplb-maroon);
+  color: #ffffff;
+  border: none;
+  border-radius: 45px;
+  font-family: var(--font-inter);
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   5. RESPONSIVENESS
+   ========================================= */
+@media (max-width: 1400px) {
+  .navbar-menu { position: static; transform: none; margin: 0 auto; }
+}
+
+@media (max-width: 1024px) {
+  /* About Page */
+  .about-content-card { padding: 40px 50px; width: 95%; }
+  
+  /* Landing Page */
+  .landing-logo-container { width: 350px; }
+  .landing-title { font-size: 34px; }
+  
+  /* Navbar */
+  .nav-button { font-size: 18px; min-width: 90px; }
+}
+
+@media (max-width: 768px) {
+  /* Navbar */
+  .navbar-container { flex-wrap: wrap; padding: 15px; }
+  .navbar-menu { order: 3; width: 100%; justify-content: center; margin-top: 15px; }
+  
+  /* About Page */
+  .about-content-card { padding: 40px 20px; }
+  .header-maroon, .header-green { font-size: 1.8rem; }
+  .group-name { font-size: 1.5rem; }
+  
+  /* Landing Page */
+  .landing-logo-container { width: 250px; }
+  .cta-button { width: 220px; height: 65px; font-size: 20px; }
+}
+
+/* =========================================
+   LOGIN PAGE STYLES
+   ========================================= */
+
+.login-page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #FAF9F6; /* Cream/Off-white background */
+  font-family: var(--font-inter);
+  padding: 20px;
+}
+
+.login-content-wrapper {
+  width: 100%;
+  max-width: 500px; /* Increased slightly to accommodate longer buttons */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-step-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.login-main-logo {
+  width: 320px;
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 50px;
+}
+
+/* Base Pill Button Style */
+.login-btn-maroon, 
+.login-btn-gray,
+.login-btn-green {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  font-family: var(--font-inter);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px; /* Adds space between normal text and bold text */
+}
+
+/* Maroon Button */
+.login-btn-maroon {
+  background-color: var(--uplb-maroon);
+  color: #ffffff;
+}
+
+.login-btn-maroon:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+/* Green Button (New for Step 2) */
+.login-btn-green {
+  background-color: var(--uplb-green); /* Uses your existing variable #2d5a27 */
+  color: #ffffff;
+}
+
+.login-btn-green:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+/* Gray Button */
+.login-btn-gray {
+  background-color: #D9D9D9;
+  color: #333333;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.login-btn-gray:hover {
+  background-color: #cccccc;
+}
+
+/* =========================================
+   LRC GUIDELINES & TERMS PAGE STYLES
+   ========================================= */
+
+.guide-page-container {
+  min-height: 100vh;
+  background-color: #FAF9F6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  font-family: var(--font-inter);
+}
+
+.guide-content-wrapper {
+  width: 100%;
+  max-width: 800px;
+  text-align: center;
+}
+
+.guide-title {
+  color: #800000;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 30px;
+}
+
+.guide-scroll-box {
+  background: #ffffff;
+  border: 1px solid #333;
+  border-radius: 20px;
+  padding: 40px;
+  height: 500px;
+  overflow-y: auto;
+  text-align: left;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+/* Scrollbar Styles */
+.guide-scroll-box::-webkit-scrollbar { width: 12px; }
+.guide-scroll-box::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 0 20px 20px 0; }
+.guide-scroll-box::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+
+.guide-intro { font-size: 1rem; color: #333; line-height: 1.6; margin-bottom: 30px; }
+.guide-section-header { font-size: 1.1rem; font-weight: 800; margin-bottom: 15px; text-transform: uppercase; }
+.guide-text-block { margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5; color: #333; }
+.guide-list { list-style: none; padding: 0; margin-bottom: 30px; }
+.guide-list li { display: flex; align-items: flex-start; margin-bottom: 12px; line-height: 1.5; font-size: 1rem; }
+.guide-list li span { font-size: 1.2rem; margin-right: 10px; line-height: 1; }
+
+/* UPDATED ACTION AREA */
+.guide-action-area {
+  display: flex;
+  justify-content: center; /* Center buttons */
+  gap: 20px; /* Space between buttons */
+  padding-left: 0;
+}
+
+/* SHARED BUTTON STYLES */
+.guide-back-btn, 
+.guide-btn-cancel, 
+.guide-btn-agree {
+  border: none;
+  border-radius: 50px;
+  padding: 12px 40px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s, transform 0.1s;
+  min-width: 150px;
+}
+
+.guide-back-btn:hover,
+.guide-btn-cancel:hover,
+.guide-btn-agree:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* SPECIFIC COLORS */
+
+/* Cancel = Maroon */
+.guide-btn-cancel {
+  background-color: var(--uplb-maroon);
+  color: white;
+}
+
+/* I Agree = Green */
+.guide-btn-agree {
+  background-color: var(--uplb-green);
+  color: white;
+}
+
+/* Back (Legacy for LRC Guide) = Maroon */
+.guide-back-btn {
+  background-color: var(--uplb-maroon);
+  color: white;
+}
+
+/* =========================================
+   BASIC INFO PAGE (SPLIT SCREEN)
+   ========================================= */
+
+.split-page-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  font-family: var(--font-inter);
+}
+
+/* Left Side - Form */
+.split-left {
+  flex: 1;
+  background-color: #FAF9F6; /* Cream/Off-white */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.form-wrapper {
+  width: 100%;
+  max-width: 450px;
+}
+
+.basic-info-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 40px;
+}
+
+.input-group {
+  margin-bottom: 25px;
+}
+
+.input-group label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #ffffff;
+  outline: none;
+  font-family: var(--font-inter);
+}
+
+.input-group input::placeholder {
+  color: #c0c0c0;
+}
+
+.input-group input:focus {
+  border-color: #999;
+}
+
+/* Yellow Continue Button */
+.btn-yellow-wide {
+  width: 100%;
+  padding: 14px;
+  background-color: #FDB913; /* Approximate Gold/Yellow */
+  color: #000;
+  font-weight: 700;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: opacity 0.2s;
+}
+
+.btn-yellow-wide:hover {
+  opacity: 0.9;
+}
+
+/* Right Side - Logo */
+.split-right {
+  flex: 1;
+  background-color: #800000; /* Maroon */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-logo {
+  width: 350px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Helper for T&C text blocks */
+.guide-text-block {
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+/* Responsiveness for Split Screen */
+@media (max-width: 768px) {
+  .split-page-container {
+    flex-direction: column-reverse; /* Put logo on top or bottom as preferred */
+  }
+  
+  .split-right {
+    padding: 60px 20px;
+    min-height: 300px;
+  }
+  
+  .split-left {
+    padding: 40px 20px;
+  }
+  
+  .hero-logo {
+    width: 200px;
+  }
+}
+
+
+/* =========================================
+   SHARED FOOTER STYLES
+   ========================================= */
+.footer {
+  width: 100%;
+  background: #333;
+  padding: 58px 100px;
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1553px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 298px 1fr 1fr 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.footer-logo {
+  width: 298px;
+  height: 182px;
+  object-fit: contain;
+}
+
+.footer-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-section-title {
+  color: #FFF;
+  font-family: var(--font-inter); /* Uses Segoe UI */
+  font-size: 28px;
+  font-weight: 600;
+  line-height: normal;
+  margin-bottom: 22px;
+}
+
+.footer-link {
+  color: #FFF;
+  font-family: var(--font-inter); /* Uses Segoe UI */
+  font-size: 20px;
+  font-weight: 600;
+  line-height: normal;
+  display: block;
+  margin-bottom: 12px;
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
+.footer-link.underlined {
+  text-decoration: underline;
+}
+
+/* Responsiveness */
+@media (max-width: 1400px) {
+  .footer { padding: 40px 60px; }
+  .footer-container { grid-template-columns: 200px repeat(4, 1fr); gap: 30px; }
+  .footer-logo { width: 200px; height: auto; }
+}
+@media (max-width: 1200px) {
+  .footer-container { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+  .footer-logo { grid-column: 1 / -1; margin: 0 auto 20px auto; }
+}
+@media (max-width: 768px) {
+  .footer { padding: 30px 20px; }
+  .footer-container { grid-template-columns: 1fr; gap: 30px; text-align: center; }
+  .footer-logo { width: 180px; }
+}
