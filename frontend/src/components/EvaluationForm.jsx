@@ -1,19 +1,15 @@
 // Styling
 import '../styles/Components.css';
-
 import React, { useState } from 'react';
+import SubmitModal from './SubmitModal'; // Ensure correct path
 
 const EvaluationForm = ({ sessionData, onClose, onSubmit, courseCode, tutorName }) => {
   const [ratings, setRatings] = useState({
-    q1: null,
-    q2: null,
-    q3: null,
-    q4: null,
-    q5: null,
+    q1: null, q2: null, q3: null, q4: null, q5: null,
   });
   const [comments, setComments] = useState('');
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
 
-  // Parse course and tutor from sessionData if string format is "Course by Tutor"
   let displayCourse = courseCode;
   let displayTutor = tutorName;
 
@@ -27,7 +23,6 @@ const EvaluationForm = ({ sessionData, onClose, onSubmit, courseCode, tutorName 
     }
   }
 
-  // Fallbacks
   displayCourse = displayCourse || sessionData?.course || 'Course Code';
   displayTutor = displayTutor || sessionData?.tutorName || 'Tutor Name';
 
@@ -40,7 +35,8 @@ const EvaluationForm = ({ sessionData, onClose, onSubmit, courseCode, tutorName 
     if (onSubmit) {
       onSubmit({ ratings, comments });
     }
-    onClose();
+    // Instead of onClose(), show the success modal
+    setShowSubmitModal(true);
   };
 
   const questions = [
@@ -51,6 +47,11 @@ const EvaluationForm = ({ sessionData, onClose, onSubmit, courseCode, tutorName 
     { id: 'q5', text: 'How would you rate your overall learning experience with this tutor?' },
   ];
 
+  // Logic to switch view to SubmitModal
+  if (showSubmitModal) {
+    return <SubmitModal onClose={onClose} />;
+  }
+
   return (
     <div className="evaluation-overlay" onClick={onClose}>
       <div className="evaluation-modal" onClick={(e) => e.stopPropagation()}>
@@ -59,29 +60,20 @@ const EvaluationForm = ({ sessionData, onClose, onSubmit, courseCode, tutorName 
             <span className="clipboard-icon">📋</span>
             <h2 className="evaluation-title">Evaluation Form</h2>
           </div>
-
           <div className="evaluation-divider"></div>
-
           <div className="session-details">
             <p><strong>Tutor:</strong> {displayTutor}</p>
             <p><strong>Course:</strong> {displayCourse}</p>
           </div>
-
           <div className="evaluation-divider"></div>
-
           <div className="instructions">
-            <strong>Instructions:</strong> Please evaluate your tutoring session based on the tutor's behavior and your learning experience. Your honest feedback helps us improve the quality of our peer tutoring services.
+            <strong>Instructions:</strong> Please evaluate your tutoring session...
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="rating-header">
-              <span>1</span>
-              <span>2</span>
-              <span>3</span>
-              <span>4</span>
-              <span>5</span>
+              <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
             </div>
-
             <div className="questions-container">
               {questions.map((question, index) => (
                 <div key={question.id} className="question-row">
@@ -93,29 +85,23 @@ const EvaluationForm = ({ sessionData, onClose, onSubmit, courseCode, tutorName 
                         type="button"
                         className={`rating-circle ${ratings[question.id] === value ? 'selected' : ''}`}
                         onClick={() => handleRatingChange(question.id, value)}
-                        aria-label={`Rate ${value} out of 5`}
                       />
                     ))}
                   </div>
                 </div>
               ))}
             </div>
-
             <div className="comments-section">
               <label className="comments-label">COMMENTS:</label>
               <textarea
                 className="comments-textarea"
-                placeholder="Share any additional feedback, suggestions, or highlights about your session..."
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
                 rows={5}
               />
             </div>
-
             <div className="form-actions">
-              <button type="submit" className="submit-button">
-                SUBMIT
-              </button>
+              <button type="submit" className="submit-button">SUBMIT</button>
             </div>
           </form>
         </div>
