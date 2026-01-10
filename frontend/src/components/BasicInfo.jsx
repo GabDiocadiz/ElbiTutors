@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoLightMode from '../assets/logo_lightmode.png';
+// Styling
+import '../styles/Components.css';
 import '../styles/design.css';
 
 const BasicInfo = () => {

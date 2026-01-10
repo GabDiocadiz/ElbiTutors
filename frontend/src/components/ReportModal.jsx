@@ -1,5 +1,7 @@
+// Styling
+import '../styles/Components.css';
+
 import React, { useState } from 'react';
-import '../styles/ReportModal.css';
 
 const ReportModal = ({ sessionData, onClose, onSubmit }) => {
   const [reportText, setReportText] = useState('');
