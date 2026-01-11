@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import Navbar from '../components/Navbar';
+import Navbar from '../components/NavBar';
 import Footer from '../components/Footer';
 import logoLightMode from '../assets/logo_lightmode.png';
-import '../styles/LoggedInHome.css';
+import '../styles/design.css';
 
 export default function Dashboard() {
   const [isExpanded, setIsExpanded] = useState(false);

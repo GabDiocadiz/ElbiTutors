@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SubjectDropdown from '../components/SubjectDropdown';
-import '../styles/Study.css';
 import '../styles/design.css';
 
 const Study = () => {
@@ -39,8 +37,6 @@ const Study = () => {
 
   return (
     <div className="study-page-bg">
-      {/* <Navbar /> */}
-
       <main className="study-container">
         {/* SEARCH SECTION */}
         <div className="search-section">

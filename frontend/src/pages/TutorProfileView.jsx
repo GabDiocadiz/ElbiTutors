@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { bookSession } from '../services/api'; // Import your frozen API
+import { bookSession } from '../services/api'; 
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import BookingModal from '../components/BookingModal';
 import SessionBookedModal from '../components/SessionBookedModal';
 import ReportModal from '../components/ReportModal';
-import '../styles/TutorProfileView.css';
+import Calendar from '../components/Calendar'; 
 import lrcBadge from '../assets/logo_lrc.png';
+
+// Styling
+import '../styles/Components.css';
+import '../styles/design.css';
 
 export default function TutorProfileView() {
   const { tutorId } = useParams();
@@ -16,8 +20,13 @@ export default function TutorProfileView() {
   const [showSessionBookedModal, setShowSessionBookedModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [error, setError] = useState(null);
+  const [lastBooking, setLastBooking] = useState(null);
 
-  // Aligned with the User Model
+  // --- Logic to check current user role ---
+  // Note: Replace this mock with your actual Auth Context or Global State
+  const currentUser = { role: 'tutor' }; 
+  const isTutor = currentUser.role === 'tutor';
+
   const tutorData = {
     name: 'Maryz Cabatingan',
     email: 'maryz@up.edu.ph',
@@ -39,26 +48,36 @@ export default function TutorProfileView() {
   };
 
   const handleBookSession = async (bookingData) => {
+    if (isTutor) return; // Prevent tutors from triggering booking
+    
     try {
       setError(null);
-      // Flow: Connect to Task #24 API Contract
-      const response = await bookSession({
-        tutorId: tutorId,
-        ...bookingData
-      });
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      console.log('Booking successful:', response.data);
+      const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      
+      const [year, month, day] = bookingData.date.split('-').map(Number);
+      const safeDate = new Date(year, month - 1, day);
+
+      const formattedBooking = {
+        date: String(day),
+        month: monthNames[safeDate.getMonth()],
+        course: `${Array.isArray(bookingData.courseCode) ? bookingData.courseCode.join(', ') : bookingData.courseCode} - ${bookingData.topics}`,
+        time: `${dayNames[safeDate.getDay()]}: ${bookingData.timeFrom}-${bookingData.timeTo}`,
+        timezone: '(GMT+08:00) Philippine Standard Time'
+      };
+
+      setLastBooking(formattedBooking);
       setShowBookingModal(false);
       setShowSessionBookedModal(true);
+
     } catch (err) {
-      // Catching the "Frozen Error" from your api.js interceptor
-      setError(err);
-      console.error('Booking failed:', err);
+      setError(err.message || "An error occurred");
     }
   };
 
   const handleReportSubmit = (reportData) => {
-    console.log('Report submitted:', reportData);
     setShowReportModal(false);
   };
 
@@ -67,7 +86,6 @@ export default function TutorProfileView() {
       <NavBar />
       
       <div className="tutor-profile-content">
-        {/* Error Banner for Intercepted API Errors */}
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             <p>{error}</p>
@@ -77,7 +95,6 @@ export default function TutorProfileView() {
         <div className="tutor-profile-header">
           <div className="tutor-header-main">
             <div className="tutor-avatar-large">
-              {/* Using "picture" from User Model */}
               <img src={tutorData.picture} alt={tutorData.name} />
             </div>
             
@@ -108,6 +125,13 @@ export default function TutorProfileView() {
               <h3 className="courses-label">Course(s) Offered</h3>
               <p className="courses-list">{tutorData.courses}</p>
             </div>
+
+            <div className="availability-section">
+              <h2 className="availability-title">Availability</h2>
+              <div className="availability-calendar">
+                <Calendar readOnly={true} />
+              </div>
+            </div>
           </div>
 
           <div className="tutor-info-right">
@@ -124,8 +148,10 @@ export default function TutorProfileView() {
               <button 
                 className="book-session-button"
                 onClick={() => setShowBookingModal(true)}
+                disabled={isTutor} // Disable if user is a tutor
+                style={isTutor ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
               >
-                Book a Session Now
+                {isTutor ? 'Booking Disabled for Tutors' : 'Book a Session'}
               </button>
             </div>
 
@@ -137,22 +163,13 @@ export default function TutorProfileView() {
                 ))}
               </ul>
             </div>
-          </div>
-        </div>
 
-        <div className="report-link-section">
-          <p>
-            <span className="report-text-gray">If you're experiencing a problem, click </span>
-            <button className="report-link" onClick={() => setShowReportModal(true)}>here</button>
-            <span className="report-text-gray"> to report.</span>
-          </p>
-        </div>
-
-        <div className="availability-section">
-          <h2 className="availability-title">Availability</h2>
-          <div className="availability-calendar">
-            <div className="calendar-placeholder py-10 text-center border-2 border-dashed border-gray-300 rounded">
-              <p className="text-gray-400 font-medium italic">Calendar Integration Coming Soon</p>
+            <div className="report-link-section">
+              <p>
+                <span className="report-text-gray">If you're experiencing a problem, click </span>
+                <button className="report-link" onClick={() => setShowReportModal(true)}>here</button>
+                <span className="report-text-gray"> to report.</span>
+              </p>
             </div>
           </div>
         </div>
@@ -169,7 +186,10 @@ export default function TutorProfileView() {
       )}
 
       {showSessionBookedModal && (
-        <SessionBookedModal onClose={() => setShowSessionBookedModal(false)} />
+        <SessionBookedModal 
+          onClose={() => setShowSessionBookedModal(false)} 
+          sessionData={lastBooking}
+        />
       )}
 
       {showReportModal && (

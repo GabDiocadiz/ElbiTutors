@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import SimpleNavBar from '../components/SimpleNavBar';
-import Navbar from '../components/Navbar';
+import Navbar from '../components/NavBar';
 import logoLightMode from '../assets/logo_lightmode.png';
 import Footer from '../components/Footer';
 import '../styles/design.css';

@@ -1,0 +1,175 @@
+/* =========================================
+   CALENDAR PLOTTING COMPONENT STYLES
+   ========================================= */
+
+.calendar-plotting-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* --- VIEW ONLY / READ ONLY STYLES --- */
+.calendar-plotting-container.read-only {
+  pointer-events: none; /* Disables all interactions (clicks, drags, hovers) */
+  opacity: 1;
+}
+
+/* Re-enable controls if they are inside the container but should stay clickable */
+.calendar-plotting-container.read-only .calendar-controls {
+  pointer-events: auto;
+}
+
+/* Cell style for read-only mode */
+.time-slot-cell.read-only-cell {
+  cursor: default;
+}
+
+.time-slot-cell.read-only-cell:hover {
+  background-color: transparent !important;
+}
+
+/* ------------------------------------ */
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.calendar-title {
+  color: #800000;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.calendar-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.calendar-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background-color: #800000;
+  color: white;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background-color: #d0d0d0;
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #333;
+}
+
+.legend-box {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.color-available {
+  background-color: #2d5a27;
+}
+
+.color-unavailable {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.calendar-day-header {
+  background-color: #800000;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.calendar-day-header.corner-cell {
+  background-color: #f9f9f9;
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.time-label-cell {
+  background-color: #f9f9f9;
+  color: #666;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #e0e0e0;
+  border-right: 1px solid #e0e0e0;
+  height: 40px;
+}
+
+.time-slot-cell {
+  height: 40px;
+  background-color: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.time-slot-cell:hover:not(.read-only-cell) {
+  background-color: rgba(45, 90, 39, 0.1);
+}
+
+.time-slot-cell.selected {
+  background-color: #2d5a27;
+}
+
+@media (max-width: 1024px) {
+  .calendar-grid {
+    overflow-x: auto;
+  }
+  .calendar-day-header, .time-slot-cell {
+    min-width: 90px;
+  }
+}
