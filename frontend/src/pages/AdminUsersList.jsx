@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AdminEditUserModal from '../components/AdminEditUserModal';
+import AdminEditUserModal from '../components/EditUser';
 import '../styles/Admin.css';
 
 export default function AdminUsersList() {
