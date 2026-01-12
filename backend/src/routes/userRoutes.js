@@ -14,6 +14,7 @@ const router = express.Router();
 // --- Public/Self Routes ---
 router.get("/me", protect, getUserProfile);
 router.put("/profile", protect, updateUserProfile);
+router.put('/availability', protect, isTutor, updateAvailability);
 
 // --- Admin Routes ---
 // SRS 4.3 Admin Interface

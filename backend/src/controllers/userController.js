@@ -203,3 +203,18 @@ export const updateUserStatus = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+//
+
+export const updateAvailability = async (req, res) => {
+  try {
+    const tutor = await TutorProfile.findOneAndUpdate(
+      { userId: req.user.id },
+      { availability: req.body.availability },
+      { new: true }
+    );
+    res.status(200).json(tutor.availability);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
