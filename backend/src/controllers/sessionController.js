@@ -168,10 +168,14 @@ export const updateSessionStatus = async (req, res) => {
 };
 
 export const completeSession = async (req, res) => {
+  try{
   const session = await Session.findByIdAndUpdate(
     req.params.id, 
-    { status: 'done' }, // Changes status for Evaluate button to appear
+    { status: 'done' },
     { new: true }
   );
   res.json(session);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

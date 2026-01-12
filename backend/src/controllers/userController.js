@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Tutor from "../models/Tutor.js";
 import AuditLog from "../models/AuditLog.js";
+import TutorProfile from '../models/TutorProfile.js';
 
 /**
  * @desc    Get Current User Profile
@@ -204,7 +205,6 @@ export const updateUserStatus = async (req, res) => {
   }
 };
 
-//
 
 export const updateAvailability = async (req, res) => {
   try {
@@ -214,6 +214,19 @@ export const updateAvailability = async (req, res) => {
       { new: true }
     );
     res.status(200).json(tutor.availability);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getTutors = async (req, res) => {
+  try {
+    const { isVerified } = req.query; 
+    const filter = { role: 'tutor' };
+    if (isVerified) filter['profile.isVerified'] = true;
+    
+    const tutors = await User.find(filter).populate('profile');
+    res.json(tutors);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

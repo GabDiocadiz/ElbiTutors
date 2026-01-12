@@ -9,6 +9,8 @@ import tutorRoutes from "./routes/tutorRoutes.js";
 import subjectRoutes from "./routes/subjectRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import reportRoutes from './routes/reportRoutes.js';
+import { isAdmin } from './middlewares/roleMiddleware.js';
+import { getDashboardStats } from './controllers/adminController.js';
 
 const app = express();
 
@@ -27,11 +29,14 @@ app.use("/api/users", userRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/auth", authRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/reports', protect, isAdmin, reportRoutes);
 
 // Root route for API status check
 app.get("/", (req, res) => {
   res.send("===== ElbiTutors API is running =====");
 });
+
+app.get('/api/admin/stats', protect, isAdmin, getDashboardStats);
 
 // TODO: Implement errorMiddleware
 // app.use(errorMiddleware);
