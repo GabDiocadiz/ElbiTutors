@@ -169,12 +169,18 @@ export const updateSessionStatus = async (req, res) => {
 
 export const completeSession = async (req, res) => {
   try{
-  const session = await Session.findByIdAndUpdate(
-    req.params.id, 
-    { status: 'done' },
-    { new: true }
-  );
-  res.json(session);
+    const session = await Session.findById(req.params.id);
+    if (!session) return res.status(404).json({ message: "Session not found" });
+
+    // Security Check: Ensure user owns the session
+    if (session.tutorId.toString() !== req.user._id.toString() && 
+        session.createdByTuteeId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to complete this session" });
+    }
+
+    session.status = 'done';
+    await session.save();
+    res.json(session);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
