@@ -208,12 +208,17 @@ export const updateUserStatus = async (req, res) => {
 
 export const updateAvailability = async (req, res) => {
   try {
-    const tutor = await TutorProfile.findOneAndUpdate(
-      { userId: req.user.id },
+    const tutor = await Tutor.findOne({ userId: req.user._id });
+    if (!tutor) return res.status(404).json({ message: "Tutor account not found" });
+
+    const profile = await TutorProfile.findOneAndUpdate(
+      { tutorId: tutor._id },
       { availability: req.body.availability },
       { new: true }
     );
-    res.status(200).json(tutor.availability);
+    if (!profile) return res.status(404).json({ message: "Tutor Profile not found" });
+
+    res.status(200).json(profile.availability);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
