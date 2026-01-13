@@ -41,3 +41,34 @@ export const login = async (req, res, next) => {
         next(err);
     }
 };
+
+export const checkUser = async (req, res, next) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      const error = new Error('Email is required');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Normalize email to lowercase
+    const normalizedEmail = email.toLowerCase();
+
+    // Check if user exists
+    const user = await User.findOne({ email: normalizedEmail });
+
+    res.status(200).json({ 
+      success: true, 
+      exists: !!user,
+      user: user ? {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      } : null
+    });
+  } catch (err) {
+    next(err);
+  }
+};

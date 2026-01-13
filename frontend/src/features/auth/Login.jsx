@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import logoLightMode from '../../assets/logo_lightmode.png';
+import api from '../../services/api';
+import logoDarkMode from '../../assets/logo_darkmode.png';
 import '../../styles/design.css';
 
 export default function Login() {
-  const [step, setStep] = useState(1);
+  const [step, setStep, loading, setLoading] = useState(1);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -16,23 +17,23 @@ export default function Login() {
       const user = await login(); 
 
       // 2. CHECK IF USER EXISTS IN DATABASE
-      // const { data: isExistingUser } = await api.checkUser(user.email);
-      
-      // FOR TESTING PURPOSES
-      // const isExistingUser = true; 
-      const isExistingUser = false; 
+      const { data } = await api.get(`/auth/check-user?email=${user.email}`);
+      const isExistingUser = data.exists;
 
       if (isExistingUser) {
-        // FLOW A: User exists -> Go straight to Dashboard
-        navigate('/dashboard');
+        // FLOW A: User exists -> Redirect to home or show error
+        alert('You already have an account. Please use the main login page.');
+        navigate('/');
       } else {
         // FLOW B: New User -> Go to Onboarding (Step 2)
         setStep(2);
       }
-
+			setLoading(0);
+			
     } catch (error) {
       console.error("Login failed:", error);
-      // Handle login errors here
+      alert('Login failed. Please try again.');
+      setLoading(0);
     }
   };
 
@@ -44,13 +45,19 @@ export default function Login() {
         {step === 1 && (
           <div className="login-step-container">
             <img 
-              src={logoLightMode} 
+              src={logoDarkMode} 
               alt="ELBI Tutors" 
               className="login-main-logo" 
             />
             
-            <button onClick={handleGoogleLogin} className="login-btn-maroon">
-              Login with <strong>UP Mail</strong>
+            <button 
+              onClick={handleGoogleLogin} 
+              className="login-btn-maroon"
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : (
+                <>Login with <strong>UP Mail</strong></>
+              )}
             </button>
             
             <button onClick={() => navigate('/about')} className="login-btn-gray">

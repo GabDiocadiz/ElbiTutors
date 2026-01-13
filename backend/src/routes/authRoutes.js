@@ -14,4 +14,7 @@ router.post('/register', register);
 // router.post('/login', validateBody(loginSchema), login);
 router.post('/login', login);
 
+// Check if user exists: GET /api/auth/check-user
+router.get('/check-user', checkUser);
+
 export default router;
