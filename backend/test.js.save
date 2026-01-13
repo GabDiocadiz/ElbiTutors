@@ -26,7 +26,7 @@ const runTests = async () => {
     console.log("🧹 Cleared test database\n");
 
     // 1️⃣ User
-    const user = await User.create({
+0    const user = await User.create({
       name: "John Doe",
       email: "john@up.edu.ph",
       role: "tutor",
