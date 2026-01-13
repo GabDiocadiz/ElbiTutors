@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     manageSessions: { type: Boolean, default: false },
   },
   preferred_subjects: [String],
+  // @srs 4.8.1: Track warnings for "3 strikes" suspension rule
   warningCount: { type: Number, default: 0 },
   google_sub: { type: String },
   email_verified: { type: Boolean, default: false },

@@ -1,17 +1,10 @@
 import express from 'express';
-import { register, login } from '../controllers/authController.js';
-// import validateBody from '../middlewares/validateBody.js';
-// Assume you have Joi schemas defined in src/validation/authValidation.js
-// import { registerSchema, loginSchema } from '../validation/authValidation.js';
+import { googleLogin } from '../controllers/authController.js';
 
 const router = express.Router();
 
-// User Registration: POST /api/auth/register
-// router.post('/register', validateBody(registerSchema), register);
-router.post('/register', register);
-
-// User Login: POST /api/auth/login
-// router.post('/login', validateBody(loginSchema), login);
-router.post('/login', login);
+// @route   POST /api/auth/google
+// @desc    Login/Register via Google Token
+router.post('/google', googleLogin);
 
 export default router;
