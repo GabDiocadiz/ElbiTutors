@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import SimpleNavBar from '../components/SimpleNavBar';
 import logoLightMode from '../assets/logo_lightmode.png';
-import '../styles/design.css'; // Updated path to centralized CSS
+import '../styles/design.css';
 
 export default function Home() {
   return (

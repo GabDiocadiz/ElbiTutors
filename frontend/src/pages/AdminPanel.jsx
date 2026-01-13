@@ -1,4 +1,7 @@
+import { Navigate } from 'react-router-dom';
+
 const AdminPanel = () => {
-  return <h1>Admin Panel is Working</h1>;
+  return <Navigate to="/admin/dashboard" replace />;
 };
+
 export default AdminPanel;

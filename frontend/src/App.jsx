@@ -9,12 +9,17 @@ import BasicInfo from './components/BasicInfo';
 import TermsAndConditions from './components/TermsAndConditions';
 import Dashboard from './pages/Dashboard';
 import AdminPanel from './pages/AdminPanel';
-import TutorProfile from './pages/TutorProfile';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsersList from './pages/AdminUsersList';
+import AdminNewLRCUser from './pages/AdminNewLRCUser';
+import AdminReports from './pages/AdminReports';
+// import TutorProfile from './pages/TutorProfile';
 import TutorProfileView from './pages/TutorProfileView';
 import Profile from './pages/Profile';
 import Study from './pages/Study';
-import Navbar from './components/Navbar';
-
+import NotFound from './pages/NotFound';
+import Navbar from './components/NavBar';
+import SimpleNavbar from './components/SimpleNavBar';
 
 function App() {
   useEffect(() => {
@@ -37,24 +42,22 @@ function App() {
         <Route path="/terms" element={<TermsAndConditions />} />
 
         {/* Logged-in Routes with Navbar */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tutors/:id" element={<><Navbar /><TutorProfile /></>} />
-        <Route path="/tutor-profile" element={<><Navbar /><TutorProfile /></>} />
+        <Route path="/dashboard" element={<><Navbar /><Dashboard /></>} />
+        {/* <Route path="/tutors/:id" element={<><Navbar /><TutorProfile /></>} /> */}
+        {/* <Route path="/tutor-profile" element={<><Navbar /><TutorProfile /></>} /> */}
         <Route path="/tutor/:tutorId/view" element={<TutorProfileView />} />
         <Route path="/profile" element={<><Navbar /><Profile /></>} />
         <Route path="/study" element={<><Navbar /><Study /></>} />
 
         {/* Admin Routes */}
-        <Route path="/admin" element={<><Navbar /><AdminPanel /></>} /> 
+        <Route path="/admin" element={<><SimpleNavbar /><AdminPanel /></>} />
+        <Route path="/admin/dashboard" element={<><SimpleNavbar /><AdminDashboard /></>} />
+        <Route path="/admin/users" element={<><SimpleNavbar /><AdminUsersList /></>} />
+        <Route path="/admin/new-lrc-user" element={<><SimpleNavbar /><AdminNewLRCUser /></>} />
+        <Route path="/admin/reports" element={<><SimpleNavbar /><AdminReports /></>} /> 
 
         {/* Page Not Found Error 404 issues */}
-        <Route path="*" element={
-          <div className="flex flex-col items-center justify-center h-screen">
-            <h1 className="text-4xl font-bold">404</h1>
-            <p>Page Not Found</p>
-            <a href="/" className="text-blue-500 underline">Return Home</a>
-          </div>
-        } />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

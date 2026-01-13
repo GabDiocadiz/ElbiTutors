@@ -12,7 +12,13 @@ export default function Navbar() {
   const { user } = useAuth();
   const location = useLocation();
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => {
+    if (path === '/dashboard' && location.pathname.startsWith('/admin')) {
+      return true; // Show Home as active for admin pages
+    }
+    return location.pathname === path;
+  };
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
     <nav className="navbar">
@@ -51,7 +57,9 @@ export default function Navbar() {
             to={user?.role === 'tutor' ? '/tutor-profile' : '/profile'}
             className="navbar-user"
           >
-            <span className="user-email">{user?.email || 'user@up.edu.ph'}</span>
+            <span className="user-email">
+              {isAdminPage ? 'ADMIN' : (user?.email || 'user@up.edu.ph')}
+            </span>
             <div className="user-avatar">
               <img
                 src={user?.picture || userPlaceholder}
