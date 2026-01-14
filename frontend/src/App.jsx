@@ -1,6 +1,14 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react'; // for testing
+import { useEffect } from 'react';
 import { getUserProfile } from './services/api';
+import { AuthProvider } from './hooks/useAuth'; // Don't forget to wrap App in AuthProvider if not already in index.js!
+
+// Components
+import ProtectedRoute from './components/ProtectedRoute'; // <--- IMPORT THIS
+import Navbar from './components/NavBar';
+import SimpleNavbar from './components/SimpleNavBar';
+
+// Pages
 import Login from './features/auth/Login';
 import Home from './pages/Home';
 import AboutPage from './pages/About';
@@ -13,27 +21,26 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminUsersList from './pages/AdminUsersList';
 import AdminNewLRCUser from './pages/AdminNewLRCUser';
 import AdminReports from './pages/AdminReports';
-// import TutorProfile from './pages/TutorProfile';
 import TutorProfileView from './pages/TutorProfileView';
 import Profile from './pages/Profile';
 import Study from './pages/Study';
 import NotFound from './pages/NotFound';
-import Navbar from './components/NavBar';
-import SimpleNavbar from './components/SimpleNavBar';
 
-function App() {
+function App() { 
+  // If api.js is fixed, this should print "Success" or a 401 error (which is fine)
   useEffect(() => {
-    // TEST: frozen contract endpoint
-    // for frontend testing purposes only
     getUserProfile()
       .then(res => console.log("Success:", res.data))
-      .catch(err => console.log("Caught Frozen Error:", err));
+      .catch(err => console.log("Caught Check:", err));
   }, []);
 
   return (
     <BrowserRouter>
+      {/* NOTE: Ensure <AuthProvider> wraps everything either here 
+         or in your main.jsx / index.js file 
+      */}
       <Routes>
-        {/* Landing Page */}
+        {/* --- PUBLIC ROUTES (Accessible by anyone) --- */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/about" element={<AboutPage />} />
@@ -41,22 +48,26 @@ function App() {
         <Route path="/basic-info" element={<BasicInfo />} />
         <Route path="/terms" element={<TermsAndConditions />} />
 
-        {/* Logged-in Routes with Navbar */}
-        <Route path="/dashboard" element={<><Navbar /><Dashboard /></>} />
-        {/* <Route path="/tutors/:id" element={<><Navbar /><TutorProfile /></>} /> */}
-        {/* <Route path="/tutor-profile" element={<><Navbar /><TutorProfile /></>} /> */}
-        <Route path="/tutor/:tutorId/view" element={<TutorProfileView />} />
-        <Route path="/profile" element={<><Navbar /><Profile /></>} />
-        <Route path="/study" element={<><Navbar /><Study /></>} />
+        {/* --- PROTECTED ROUTES (Logged-in Users Only) --- */}
+        {/* We allow 'tutee', 'tutor', and 'admin' to see these pages */}
+        <Route element={<ProtectedRoute allowedRoles={['tutee', 'tutor', 'admin']} />}>
+            <Route path="/dashboard" element={<><Navbar /><Dashboard /></>} />
+            <Route path="/tutor/:tutorId/view" element={<TutorProfileView />} />
+            <Route path="/profile" element={<><Navbar /><Profile /></>} />
+            <Route path="/study" element={<><Navbar /><Study /></>} />
+        </Route>
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<><SimpleNavbar /><AdminPanel /></>} />
-        <Route path="/admin/dashboard" element={<><SimpleNavbar /><AdminDashboard /></>} />
-        <Route path="/admin/users" element={<><SimpleNavbar /><AdminUsersList /></>} />
-        <Route path="/admin/new-lrc-user" element={<><SimpleNavbar /><AdminNewLRCUser /></>} />
-        <Route path="/admin/reports" element={<><SimpleNavbar /><AdminReports /></>} /> 
+        {/* --- ADMIN ROUTES (Admin Only) --- */}
+        {/* If a 'tutee' tries to go here, they get kicked to /dashboard */}
+        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route path="/admin" element={<><SimpleNavbar /><AdminPanel /></>} />
+            <Route path="/admin/dashboard" element={<><SimpleNavbar /><AdminDashboard /></>} />
+            <Route path="/admin/users" element={<><SimpleNavbar /><AdminUsersList /></>} />
+            <Route path="/admin/new-lrc-user" element={<><SimpleNavbar /><AdminNewLRCUser /></>} />
+            <Route path="/admin/reports" element={<><SimpleNavbar /><AdminReports /></>} /> 
+        </Route>
 
-        {/* Page Not Found Error 404 issues */}
+        {/* 404 Page */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

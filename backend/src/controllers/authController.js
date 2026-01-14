@@ -42,6 +42,47 @@ export const login = async (req, res, next) => {
     }
 };
 
+// --- 3. GOOGLE LOGIN (For "Login with UP Mail") ---
+export const googleLogin = async (req, res, next) => {
+  try {
+    const { email, googleId, name, picture } = req.body; 
+
+    // Find user by Email
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Return 404 to tell Frontend to go to "Onboarding/Registration" page
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update Google metadata if missing (Sync Profile)
+    if (!user.google_sub) user.google_sub = googleId;
+    if (!user.picture) user.picture = picture;
+    await user.save();
+
+    // Generate Token
+    const token = jwt.sign(
+        { id: user._id, role: user.role }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: '1h' }
+    );
+
+    res.status(200).json({ 
+        success: true, 
+        token, 
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            picture: user.picture
+        }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const checkUser = async (req, res, next) => {
   try {
     const { email } = req.query;

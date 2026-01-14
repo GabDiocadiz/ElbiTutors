@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Navbar from '../components/NavBar';
 import Footer from '../components/Footer';
 import logoLightMode from '../assets/logo_lightmode.png';
 import '../styles/design.css';
@@ -12,6 +13,7 @@ export default function Dashboard() {
 
   return (
     <div className="logged-in-home">
+      <Navbar />
 
       {/* Hero Section */}
       <section className="hero-section">
