@@ -1,23 +1,45 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import SubjectDropdown from '../components/SubjectDropdown';
 import '../styles/design.css';
+import api from '../services/api';
 
 const Study = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [tutors, setTutors] = useState([]);
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch Tutor Data
+  useEffect(() => {
+    const fetchTutors = async () => {
+      setLoading(true);
+      try {
+        const tutorResponse = await api.get('api/tutors');
+        setTutors(tutorResponse.data);
+        console.log('Tutors from API:', tutorResponse.data);
+      } catch (error) {
+        console.error("Error fetching tutors:", error);
+        alert('Failed to load tutors. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchTutors()
+  }, []);
 
   // Mock Data for Tutors
-  const tutors = [
-    { id: 101, name: "Joanne Maryz Cabatingan", courses: "CMSC 12, CMSC 21, MATH 27", type: "recommended" },
-    { id: 102, name: "Gavin", courses: "CHEM 18, BIO 11", type: "recommended" },
-    { id: 103, name: "Angeline Cubelo", courses: "PHYS 71, MATH 28", type: "recommended" },
-    { id: 104, name: "Lance", courses: "CMSC 123, STAT 1", type: "recommended" },
-    { id: 105, name: "Eitan", courses: "ENG 10, COMM 10", type: "new" },
-    { id: 106, name: "Kevin", courses: "ARTS 1, HUM 3", type: "new" },
-  ];
+  // const tutors = [
+  //   { id: 101, name: "Joanne Maryz Cabatingan", courses: "CMSC 12, CMSC 21, MATH 27", type: "recommended" },
+  //   { id: 102, name: "Gavin", courses: "CHEM 18, BIO 11", type: "recommended" },
+  //   { id: 103, name: "Angeline Cubelo", courses: "PHYS 71, MATH 28", type: "recommended" },
+  //   { id: 104, name: "Lance", courses: "CMSC 123, STAT 1", type: "recommended" },
+  //   { id: 105, name: "Eitan", courses: "ENG 10, COMM 10", type: "new" },
+  //   { id: 106, name: "Kevin", courses: "ARTS 1, HUM 3", type: "new" },
+  // ];
 
   // Filtering Logic
   const filteredTutors = tutors.filter(tutor => {
@@ -34,6 +56,28 @@ const Study = () => {
   // Update to match the route defined in TUTOR_PROFILE_COMPONENTS.md
   navigate(`/tutor/${tutorId}/view`); 
   };
+
+  if (loading) {
+    return (
+      <div className="study-page-bg">
+        <main className="study-container">
+          <p className="loading-message">Loading tutors...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // if (error) {
+  //   return (
+  //     <div className="study-page-bg">
+  //       <main className="study-container">
+  //         <p className="error-message">{error}</p>
+  //       </main>
+  //       <Footer />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="study-page-bg">

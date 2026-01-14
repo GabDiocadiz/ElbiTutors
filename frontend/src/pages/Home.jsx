@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import SimpleNavBar from '../components/SimpleNavBar';
 import logoLightMode from '../assets/logo_lightmode.png';

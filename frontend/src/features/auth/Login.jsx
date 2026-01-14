@@ -33,12 +33,10 @@ export default function Login() {
         // FLOW B: New User -> Go to Onboarding (Step 2)
         setStep(2);
       }
-
-      setLoading(false);
-
     } catch (error) {
       console.error("Login failed:", error);
       alert('Login failed. Please try again.');
+    } finally {
       setLoading(false);
     }
   };

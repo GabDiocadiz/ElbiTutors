@@ -15,7 +15,10 @@ const app = express();
 // Core Middleware
 app.use(express.json()); // Parses incoming JSON requests
 app.use(express.urlencoded({ extended: true })); // Parses URL-encoded requests
-app.use(cors()); // Enables Cross-Origin Resource Sharing
+app.use(cors({
+  origin: 'http://localhost:5173', // Specified frontend origin
+  credentials: true 
+})); // Enables Cross-Origin Resource Sharing
 
 // TODO: Implement requestLogger middleware
 // app.use(requestLogger);
