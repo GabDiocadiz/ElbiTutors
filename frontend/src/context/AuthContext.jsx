@@ -9,18 +9,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = () => {
     console.log("Google Login Triggered");
-    // add google log in here
-    // Example: after successful login, call setUser with user data
-    // setUser({
-    //   name: '',
-    //   email: '',
-    //   role: 'tutee',
-    //   degree_program: '',
-    //   classification: '',
-    //   isLRCAdmin: false,
-    //   picture: '',
-    //   preferred_subjects: []
-    // });
+    // TODO: Implement actual Google OAuth login here 
+      // (in progress by Maryz based on previous chat messages)
+    // For now, return the mockUser for testing
+    setUser(mockUser);
+    return user;
   };
 
   const logout = () => setUser(null);

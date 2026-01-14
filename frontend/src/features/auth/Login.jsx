@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
-import logoDarkMode from '../../assets/logo_darkmode.png';
+import logoLightMode from '../../assets/logo_lightmode.png';
 import '../../styles/design.css';
 
 export default function Login() {
-  const [step, setStep, loading, setLoading] = useState(1);
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   // Step 1: Login with UP Mail
   const handleGoogleLogin = async () => {
     try {
+      setLoading(true);
       // 1. Trigger the actual Google Login
       const user = await login(); 
 
@@ -28,12 +30,13 @@ export default function Login() {
         // FLOW B: New User -> Go to Onboarding (Step 2)
         setStep(2);
       }
-			setLoading(0);
-			
+
+      setLoading(false);
+
     } catch (error) {
       console.error("Login failed:", error);
       alert('Login failed. Please try again.');
-      setLoading(0);
+      setLoading(false);
     }
   };
 
@@ -45,7 +48,7 @@ export default function Login() {
         {step === 1 && (
           <div className="login-step-container">
             <img 
-              src={logoDarkMode} 
+              src={logoLightMode} 
               alt="ELBI Tutors" 
               className="login-main-logo" 
             />
