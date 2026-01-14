@@ -11,49 +11,58 @@ export default function Login() {
   const { setAuthSession } = useAuth();
   const navigate = useNavigate();
 
-  /**
-   * ============================
-   * GOOGLE LOGIN SUCCESS
-   * ============================
-   */
   const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      alert("Google login failed: missing credential.");
+      return;
+    }
+
     try {
       setLoading(true);
 
-      // Send ID token to backend
-      const { data } = await api.post("/auth/google", {
+      const response = await api.post("/auth/google", {
         credential: credentialResponse.credential,
       });
 
       // Existing user → log in
-      setAuthSession(data.token, data.user);
-      navigate("/dashboard");
+      if (response?.data?.token && response?.data?.user) {
+        setAuthSession(response.data.token, response.data.user);
+        navigate("/dashboard");
+        return;
+      }
+
+      throw new Error("Unexpected server response");
 
     } catch (err) {
-      // New user → onboarding
-      if (err.response?.status === 404) {
-        navigate("/basic-info", {
-          state: {
-            googleData: err.response.data.googleData,
-            role: "tutee",
-          },
-        });
-      } else {
-        alert(err.response?.data?.message || "Google login failed");
+      console.error("Google login error:", err.response?.data || err.message);
+
+      // NEW USER: 404 + googleData
+      const googleData = err.response?.data?.googleData;
+      if (googleData) {
+        // IMPORTANT: Attach the credential (ID Token) to the data object
+        // This is required for the final registration step in TermsAndConditions
+        const dataToSave = { 
+          ...googleData, 
+          idToken: credentialResponse.credential 
+        };
+        
+        localStorage.setItem("googleData", JSON.stringify(dataToSave));
+        navigate("/basic-info", { state: { googleData: dataToSave, role: "tutee" } });
+        return;
       }
+
+      alert(
+        err.response?.data?.message || "Google login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  /**
-   * ============================
-   * CUSTOM BUTTON HANDLER
-   * ============================
-   */
   const handleCustomButtonClick = () => {
-    // Trigger the hidden GoogleLogin button
-    document.querySelector('div[role="button"]')?.click();
+    const googleButton = document.querySelector('div[role="button"]');
+    if (googleButton) googleButton.click();
+    else alert("Google login button not ready. Please try again.");
   };
 
   return (
@@ -66,7 +75,6 @@ export default function Login() {
             className="login-main-logo"
           />
 
-          {/* --- YOUR ORIGINAL MAROON BUTTON --- */}
           <button
             onClick={handleCustomButtonClick}
             className="login-btn-maroon"
@@ -75,18 +83,15 @@ export default function Login() {
             {loading ? "Connecting..." : <>Login with <strong>UP Mail</strong></>}
           </button>
 
-          <button
-            onClick={() => navigate("/about")}
-            className="login-btn-gray"
-          >
-            What is ElBiTutors?
+          {/* RESTORED BUTTON */}
+          <button onClick={() => navigate("/about")} className="login-btn-gray">
+            What is ELBI Tutors?
           </button>
 
-          {/* --- HIDDEN GOOGLE LOGIN --- */}
           <div style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
-              onError={() => alert("Google Login Failed")}
+              onError={() => alert("Google login failed")}
               useOneTap={false}
             />
           </div>

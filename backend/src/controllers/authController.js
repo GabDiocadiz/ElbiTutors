@@ -181,13 +181,10 @@ export const googleLogin = async (req, res, next) => {
         return res.status(404).json({
           success: false,
           message: "User not onboarded",
-          googleData: {
-            email,
-            name,
-            picture,
-          },
+          googleData: { email, name, picture },
         });
       }
+
 
       user = await User.create({
         name,
@@ -196,9 +193,10 @@ export const googleLogin = async (req, res, next) => {
         google_sub: googleSub,
         picture,
         email_verified: true,
-        degree_program,
-        classification,
+        degree_program: degree_program || "Not set",
+        classification: classification || "Not set",
       });
+
     }
 
     /**
