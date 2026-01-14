@@ -1,95 +1,100 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useGoogleLogin } from '@react-oauth/google'; // Real Google Login Hook
-import axios from 'axios';
-import { useAuth } from '../../hooks/useAuth';
-import api from '../../services/api';
-import logoLightMode from '../../assets/logo_lightmode.png';
-import '../../styles/design.css';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../../hooks/useAuth";
+import api from "../../services/api";
+import logoLightMode from "../../assets/logo_lightmode.png";
+import "../../styles/design.css";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
-  const { setAuthSession } = useAuth(); 
+  const { setAuthSession } = useAuth();
   const navigate = useNavigate();
 
-  // --- REAL GOOGLE LOGIN IMPLEMENTATION ---
-  const loginToGoogle = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        setLoading(true);
-        
-        // 1. Fetch Real User Info from Google
-        const userInfo = await axios.get(
-          'https://www.googleapis.com/oauth2/v3/userinfo',
-          { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
-        );
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      alert("Google login failed: missing credential.");
+      return;
+    }
 
-        const googleUser = userInfo.data; // Contains email, name, picture, sub (id)
+    try {
+      setLoading(true);
 
-        // 2. Check Backend with Real Data
-        try {
-          const { data } = await api.post('/auth/google', {
-              email: googleUser.email,
-              googleId: googleUser.sub,
-              name: googleUser.name,
-              picture: googleUser.picture
-          });
+      const response = await api.post("/auth/google", {
+        credential: credentialResponse.credential,
+      });
 
-          // SUCCESS: Log in
-          console.log("Login Success:", data.user);
-          setAuthSession(data.token, data.user);
-          navigate('/dashboard');
-
-        } catch (backendError) {
-          if (backendError.response && backendError.response.status === 404) {
-               // USER NOT FOUND -> New User Flow (Go to Basic Info)
-               // Map Google Data to our expected format
-               navigate('/basic-info', { 
-                 state: { 
-                   googleUser: {
-                     email: googleUser.email,
-                     displayName: googleUser.name,
-                     photoURL: googleUser.picture,
-                     uid: googleUser.sub
-                   },
-                   role: 'tutee' 
-                 } 
-               });
-          } else {
-               const msg = backendError.response?.data?.message || "Unknown error";
-               alert('Login Server Error: ' + msg);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to get user info from Google", error);
-        alert("Could not retrieve Google Profile.");
-      } finally {
-        setLoading(false);
+      // Existing user → log in
+      if (response?.data?.token && response?.data?.user) {
+        setAuthSession(response.data.token, response.data.user);
+        navigate("/dashboard");
+        return;
       }
-    },
-    onError: () => {
-      alert('Google Login Failed');
+
+      throw new Error("Unexpected server response");
+
+    } catch (err) {
+      console.error("Google login error:", err.response?.data || err.message);
+
+      // NEW USER: 404 + googleData
+      const googleData = err.response?.data?.googleData;
+      if (googleData) {
+        // IMPORTANT: Attach the credential (ID Token) to the data object
+        // This is required for the final registration step in TermsAndConditions
+        const dataToSave = { 
+          ...googleData, 
+          idToken: credentialResponse.credential 
+        };
+        
+        localStorage.setItem("googleData", JSON.stringify(dataToSave));
+        navigate("/basic-info", { state: { googleData: dataToSave, role: "tutee" } });
+        return;
+      }
+
+      alert(
+        err.response?.data?.message || "Google login failed. Please try again."
+      );
+    } finally {
       setLoading(false);
     }
-  });
+  };
+
+  const handleCustomButtonClick = () => {
+    const googleButton = document.querySelector('div[role="button"]');
+    if (googleButton) googleButton.click();
+    else alert("Google login button not ready. Please try again.");
+  };
 
   return (
     <div className="login-page-container">
       <div className="login-content-wrapper">
         <div className="login-step-container">
-          <img src={logoLightMode} alt="ELBI Tutors" className="login-main-logo" />
-          
-          <button 
-            onClick={() => loginToGoogle()} // Triggers the popup
+          <img
+            src={logoLightMode}
+            alt="ELBI Tutors"
+            className="login-main-logo"
+          />
+
+          <button
+            onClick={handleCustomButtonClick}
             className="login-btn-maroon"
             disabled={loading}
           >
-            {loading ? 'Connecting...' : <>Login with <strong>UP Mail</strong></>}
+            {loading ? "Connecting..." : <>Login with <strong>UP Mail</strong></>}
           </button>
-          
-          <button onClick={() => navigate('/about')} className="login-btn-gray">
-            What is ElBiTutors?
+
+          {/* RESTORED BUTTON */}
+          <button onClick={() => navigate("/about")} className="login-btn-gray">
+            What is ELBI Tutors?
           </button>
+
+          <div style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => alert("Google login failed")}
+              useOneTap={false}
+            />
+          </div>
         </div>
       </div>
     </div>

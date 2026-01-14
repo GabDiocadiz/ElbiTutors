@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
-// Styling
 import '../styles/Components.css';
 import '../styles/design.css';
 
@@ -12,49 +11,37 @@ const TermsAndConditions = () => {
   const { setAuthSession } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  // Get Data passed from BasicInfo
-  const { googleUser, profileData } = location.state || {};
+  const { googleData, profileData, role } = location.state || {};
+
+  if (!googleData || !profileData) {
+    navigate('/login');
+    return null;
+  }
 
   const handleAgree = async () => {
-    // 1. Validation: Ensure we have the data to register
-    if (!googleUser || !profileData) {
-      alert("Missing registration data. Please restart the process.");
-      navigate('/login');
-      return;
-    }
-
     try {
       setLoading(true);
-
-      // 2. Prepare Payload (Force role to 'tutee' for self-registration)
       const payload = {
-        email: googleUser.email,
-        googleId: googleUser.uid,
-        name: googleUser.displayName,
-        picture: googleUser.photoURL,
-        role: 'tutee', 
+        credential: googleData.idToken, // Required for verifyIdToken
+        role: role || 'tutee',
+        student_number: profileData.studentNumber,
         degree_program: profileData.degreeProgram,
-        classification: profileData.classification
+        classification: profileData.classification,
       };
 
-      // 3. Call Backend to create user
-      const { data } = await api.post('/auth/google', payload);
+      const { data } = await api.post('/auth/google', payload); // Creates account in DB
 
-      // 4. Set Session & Redirect to Dashboard
-      setAuthSession(data.token, data.user);
-      navigate('/dashboard');
-
+      if (data.success) {
+        setAuthSession(data.token, data.user);
+        localStorage.removeItem("googleData");
+        navigate('/dashboard');
+      }
     } catch (error) {
-      console.error("Registration failed", error);
-      alert("Registration failed. Please try again.");
+      console.error("Registration failed", error.response?.data || error.message);
+      alert(error.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCancel = () => {
-    // Navigate back to Basic Info to allow edits
-    navigate(-1);
   };
 
   return (
@@ -64,45 +51,41 @@ const TermsAndConditions = () => {
 
         <div className="guide-scroll-box">
           <p className="guide-intro">
-            Welcome to <strong>ELBI Tutors</strong>. By using our platform, you agree to comply with and be bound by the following terms and conditions of use.
+            Welcome to <strong>ELBI Tutors</strong>. By creating an account, you agree to the following terms regarding your use of our peer-tutoring services.
           </p>
 
-          <h3 className="guide-section-header">1. ACCEPTANCE OF TERMS</h3>
+          <h3 className="guide-section-header">1. ELIGIBILITY</h3>
           <p className="guide-text-block">
-            By accessing and using this service, you accept and agree to be bound by the terms and provision of this agreement. In addition, when using these particular services, you shall be subject to any posted guidelines or rules applicable to such services.
+            This platform is exclusively for currently enrolled students of the University of the Philippines Los Baños. Use of an "@up.edu.ph" account is mandatory for verification.
           </p>
 
-          <h3 className="guide-section-header">2. USER RESPONSIBILITIES</h3>
+          <h3 className="guide-section-header">2. CODE OF CONDUCT</h3>
           <p className="guide-text-block">
-            You agree to provide accurate and complete information when creating your account. You are responsible for maintaining the confidentiality of your account and password and for restricting access to your computer.
+            Users must maintain professional and respectful behavior during tutoring sessions. Any form of harassment, discrimination, or inappropriate conduct will result in immediate account suspension.
           </p>
 
           <h3 className="guide-section-header">3. ACADEMIC INTEGRITY</h3>
           <p className="guide-text-block">
-            ELBI Tutors is designed to facilitate learning. Users are expected to uphold the University's code of academic integrity. The platform should not be used for cheating, plagiarism, or any form of academic dishonesty.
+            ELBI Tutors is a platform for learning assistance, not a shortcut. Tutors shall not complete assignments, exams, or projects for tutees. All participants must uphold the UP Code of Academic Integrity.
           </p>
 
-          <h3 className="guide-section-header">4. PRIVACY POLICY</h3>
+          <h3 className="guide-section-header">4. DATA PRIVACY</h3>
           <p className="guide-text-block">
-            Your privacy is important to us. We collect only the data necessary to provide our services, such as your UP Mail, student number, and degree program, to verify your identity as a UPLB student.
+            We collect your name, email, student number, and academic details to facilitate pairings. Your data is stored securely and will not be shared with third parties without your explicit consent.
+          </p>
+
+          <h3 className="guide-section-header">5. LIMITATION OF LIABILITY</h3>
+          <p className="guide-text-block">
+            While we strive for quality, ELBI Tutors does not guarantee specific academic grades or outcomes resulting from the use of this service.
           </p>
         </div>
 
         <div className="guide-action-area">
-          <button 
-            className="guide-btn-cancel" 
-            onClick={handleCancel}
-            disabled={loading}
-          >
-            Cancel
+          <button className="guide-btn-cancel" onClick={() => navigate(-1)} disabled={loading}>
+            Back
           </button>
-          
-          <button 
-            className="guide-btn-agree" 
-            onClick={handleAgree}
-            disabled={loading}
-          >
-            {loading ? 'Registering...' : 'I Agree'}
+          <button className="guide-btn-agree" onClick={handleAgree} disabled={loading}>
+            {loading ? 'Processing...' : 'I Agree & Register'}
           </button>
         </div>
       </div>

@@ -162,6 +162,15 @@
   transition: all 0.2s ease;
   z-index: 1000;
 }
+.navbar-dropdown::before {
+  content: "";
+  position: absolute;
+  top: -20px; /* Adjust this to cover the gap (e.g., the 10% space) */
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: transparent;
+}
 
 .navbar-dropdown.open {
   opacity: 1;
