@@ -9,6 +9,7 @@ const tutorSchema = new mongoose.Schema({
   specializationText: { type: String },
   specializationCodes: [String],
   rating: { type: Number, default: 0 },
+  ratingCount: { type: Number, default: 0 },
 }, { timestamps: true });
 
 export default mongoose.model("Tutor", tutorSchema);

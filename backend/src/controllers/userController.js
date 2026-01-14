@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Tutor from "../models/Tutor.js";
 import AuditLog from "../models/AuditLog.js";
+import ApiError from "../utils/ApiError.js";
 
 /**
  * @desc    Get Current User Profile
@@ -8,13 +9,13 @@ import AuditLog from "../models/AuditLog.js";
  * @access  Private
  * @srs     4.1.2 Tutee Profile Management
  */
-export const getUserProfile = async (req, res) => {
+export const getUserProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).select("-google_sub");
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) throw new ApiError("User not found", 404);
     res.json(user);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -24,12 +25,12 @@ export const getUserProfile = async (req, res) => {
  * @access  Private
  * @srs     4.1.2 Response 2: User manages own profile details
  */
-export const updateUserProfile = async (req, res) => {
+export const updateUserProfile = async (req, res, next) => {
   const { degree_program, classification, preferred_subjects } = req.body;
 
   try {
     const user = await User.findById(req.user._id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) throw new ApiError("User not found", 404);
 
     // Update allowed fields (Cannot change email or role here)
     if (degree_program !== undefined) user.degree_program = degree_program;
@@ -39,7 +40,7 @@ export const updateUserProfile = async (req, res) => {
     const updatedUser = await user.save();
     res.json(updatedUser);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -49,7 +50,7 @@ export const updateUserProfile = async (req, res) => {
  * @access  Private (Admin Only)
  * @srs     4.3.3 REQ-2: View, search, and filter all user accounts
  */
-export const getUsers = async (req, res) => {
+export const getUsers = async (req, res, next) => {
   const { keyword } = req.query;
 
   try {
@@ -66,7 +67,7 @@ export const getUsers = async (req, res) => {
     const users = await User.find(query).select("-google_sub").sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -74,7 +75,7 @@ export const getUsers = async (req, res) => {
  * @desc    Create User (Admin Pre-provisioning)
  * @srs     4.3.2 Stimulus 5
  */
-export const createUser = async (req, res) => {
+export const createUser = async (req, res, next) => {
   const { name, email, role, degree_program } = req.body;
 
   try {
@@ -83,12 +84,12 @@ export const createUser = async (req, res) => {
 
     // 1. Validate UP Mail
     if (!normalizedEmail.endsWith("@up.edu.ph")) {
-      return res.status(400).json({ message: "Only @up.edu.ph emails are allowed." });
+      throw new ApiError("Only @up.edu.ph emails are allowed.", 400);
     }
 
     const userExists = await User.findOne({ email: normalizedEmail });
     if (userExists) {
-      return res.status(400).json({ message: "User already exists." });
+      throw new ApiError("User already exists.", 400);
     }
 
     // 2. Create User
@@ -119,7 +120,7 @@ export const createUser = async (req, res) => {
 
     res.status(201).json(user);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -127,17 +128,17 @@ export const createUser = async (req, res) => {
  * @desc    Update User Role
  * @srs     4.3.3 REQ-3
  */
-export const updateUserRole = async (req, res) => {
+export const updateUserRole = async (req, res, next) => {
   const { role, isLRCAdmin } = req.body;
 
   try {
     // Prevent Self-Demotion
     if (req.params.id === req.user._id.toString()) {
-      return res.status(400).json({ message: "You cannot change your own role." });
+      throw new ApiError("You cannot change your own role.", 400);
     }
 
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) throw new ApiError("User not found", 404);
 
     const oldRole = user.role;
 
@@ -162,7 +163,7 @@ export const updateUserRole = async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -170,22 +171,22 @@ export const updateUserRole = async (req, res) => {
  * @desc    Deactivate/Suspend User
  * @srs     4.8.3 REQ-5
  */
-export const updateUserStatus = async (req, res) => {
+export const updateUserStatus = async (req, res, next) => {
   const { status } = req.body; 
 
   const validStatuses = ["active", "suspended", "inactive"];
   if (!validStatuses.includes(status)) {
-    return res.status(400).json({ message: "Invalid status" });
+    throw new ApiError("Invalid status", 400);
   }
 
   try {
     // Prevent Self-Suspension
     if (req.params.id === req.user._id.toString()) {
-      return res.status(400).json({ message: "You cannot suspend your own account." });
+      throw new ApiError("You cannot suspend your own account.", 400);
     }
 
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) throw new ApiError("User not found", 404);
 
     const oldStatus = user.status;
     user.status = status;
@@ -200,6 +201,6 @@ export const updateUserStatus = async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };

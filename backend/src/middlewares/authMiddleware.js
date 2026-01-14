@@ -1,6 +1,10 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
+/**
+ * @desc    Middleware to protect routes. Verifies JWT token from Authorization header.
+ * @srs     5.3 Security Requirements: Access Control
+ */
 export const protect = async (req, res, next) => {
     let token;
 
@@ -37,6 +41,10 @@ export const protect = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Middleware to restrict access to Admins only.
+ * @srs     2.3 User Classes: Admins (LRC Staff)
+ */
 export const adminOnly = (req, res, next) => {
     if (req.user && (req.user.role === 'admin' || req.user.isLRCAdmin)) {
         next();
@@ -47,6 +55,10 @@ export const adminOnly = (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Middleware to restrict access to Tutors (and Admins).
+ * @srs     2.3 User Classes: LRC-Trained Tutors
+ */
 export const tutorOnly = (req, res, next) => {
     if (req.user && (req.user.role === 'tutor' || req.user.role === 'admin' || req.user.isLRCAdmin)) {
         next();
