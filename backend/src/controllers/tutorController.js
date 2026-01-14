@@ -1,5 +1,6 @@
 import Tutor from "../models/Tutor.js";
 import User from "../models/User.js";
+import ApiError from "../utils/ApiError.js";
 
 /**
  * @desc    Get all Tutors (with sophisticated search)
@@ -8,7 +9,7 @@ import User from "../models/User.js";
  * @srs     2.2 Tutor Discovery & Search
  * @srs     4.4.3 REQ-5 Specialization as searchable keywords
  */
-export const getTutors = async (req, res) => {
+export const getTutors = async (req, res, next) => {
   const { keyword, subject } = req.query;
 
   try {
@@ -51,8 +52,7 @@ export const getTutors = async (req, res) => {
     res.json(tutors);
 
   } catch (error) {
-    console.error("Search Error:", error);
-    res.status(500).json({ message: "Server Error: Unable to retrieve tutors." });
+    next(error);
   }
 };
 
@@ -62,23 +62,23 @@ export const getTutors = async (req, res) => {
  * @access  Public
  * @srs     4.4.3 REQ-1 Dedicated profile page
  */
-export const getTutorById = async (req, res) => {
+export const getTutorById = async (req, res, next) => {
   try {
     // Validate MongoID format to prevent server crashes on bad URLs
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(404).json({ message: "Tutor not found (Invalid ID)" });
+      throw new ApiError("Tutor not found (Invalid ID)", 404);
     }
 
     const tutor = await Tutor.findById(req.params.id)
       .populate("userId", "name email picture degree_program classification");
 
     if (!tutor) {
-      return res.status(404).json({ message: "Tutor not found" });
+      throw new ApiError("Tutor not found", 404);
     }
 
     res.json(tutor);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -88,7 +88,7 @@ export const getTutorById = async (req, res) => {
  * @access  Private (Tutor Only)
  * @srs     4.4.3 REQ-2, REQ-3, REQ-4
  */
-export const updateTutorProfile = async (req, res) => {
+export const updateTutorProfile = async (req, res, next) => {
   const { 
     bio, 
     specializationText, 
@@ -101,7 +101,7 @@ export const updateTutorProfile = async (req, res) => {
     const tutor = await Tutor.findOne({ userId: req.user._id });
 
     if (!tutor) {
-      return res.status(404).json({ message: "Tutor profile not found. Are you a certified tutor?" });
+      throw new ApiError("Tutor profile not found. Are you a certified tutor?", 404);
     }
 
     // 2. Update Allowed Fields Only (Security)
@@ -132,6 +132,6 @@ export const updateTutorProfile = async (req, res) => {
     res.json(updatedTutor);
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };

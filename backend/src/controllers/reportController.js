@@ -1,5 +1,6 @@
 import Report from "../models/Report.js";
 import User from "../models/User.js";
+import ApiError from "../utils/ApiError.js";
 
 /**
  * @desc    Create a new report
@@ -7,12 +8,12 @@ import User from "../models/User.js";
  * @access  Private
  * @srs     4.8.1 Reporting
  */
-export const createReport = async (req, res) => {
+export const createReport = async (req, res, next) => {
   try {
     const { reportedId, sessionId, description } = req.body;
 
     if (!reportedId || !description) {
-      return res.status(400).json({ message: "Reported user and description are required." });
+      throw new ApiError("Reported user and description are required.", 400);
     }
 
     const report = await Report.create({
@@ -25,7 +26,7 @@ export const createReport = async (req, res) => {
 
     res.status(201).json(report);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -34,7 +35,7 @@ export const createReport = async (req, res) => {
  * @route   GET /api/reports
  * @access  Private (Admin)
  */
-export const getReports = async (req, res) => {
+export const getReports = async (req, res, next) => {
   try {
     const { status } = req.query;
     const filter = status ? { status } : {};
@@ -47,7 +48,7 @@ export const getReports = async (req, res) => {
 
     res.json(reports);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -55,19 +56,20 @@ export const getReports = async (req, res) => {
  * @desc    Resolve a report & Issue Warning
  * @route   PUT /api/reports/:id/resolve
  * @access  Private (Admin)
- * @srs     4.8.3 REQ-5 & REQ-6 ("Three Warnings" Rule)
+ * @srs     4.8.3 REQ-5: Admin actions (warnings, suspension)
+ * @srs     4.8.1: "After three valid reports, the account shall be temporarily terminated."
  */
-export const resolveReport = async (req, res) => {
+export const resolveReport = async (req, res, next) => {
   try {
     const { issueWarning } = req.body; // true/false
     const report = await Report.findById(req.params.id);
 
     if (!report) {
-      return res.status(404).json({ message: "Report not found" });
+      throw new ApiError("Report not found", 404);
     }
 
     if (report.status === "resolved") {
-      return res.status(400).json({ message: "Report is already resolved" });
+      throw new ApiError("Report is already resolved", 400);
     }
 
     report.status = "resolved";
@@ -94,6 +96,6 @@ export const resolveReport = async (req, res) => {
 
     res.json({ message, report });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };

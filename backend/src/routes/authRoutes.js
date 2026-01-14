@@ -1,5 +1,4 @@
 import express from 'express';
-// FIX: Explicitly import googleLogin and checkUser
 import { register, login, googleLogin, checkUser } from '../controllers/authController.js';
 
 const router = express.Router();
