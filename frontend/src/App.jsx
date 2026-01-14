@@ -51,7 +51,7 @@ function App() {
         {/* --- PROTECTED ROUTES (Logged-in Users Only) --- */}
         {/* We allow 'tutee', 'tutor', and 'admin' to see these pages */}
         <Route element={<ProtectedRoute allowedRoles={['tutee', 'tutor', 'admin']} />}>
-            <Route path="/dashboard" element={<><Navbar /><Dashboard /></>} />
+            <Route path="/dashboard" element={<><Dashboard /></>} />
             <Route path="/tutor/:tutorId/view" element={<TutorProfileView />} />
             <Route path="/profile" element={<><Navbar /><Profile /></>} />
             <Route path="/study" element={<><Navbar /><Study /></>} />

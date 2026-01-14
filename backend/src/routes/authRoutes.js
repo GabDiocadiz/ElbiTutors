@@ -1,29 +1,19 @@
 import express from 'express';
-// import { register, login } from '../controllers/authController.js';
-import { 
-  register, 
-  login, 
-  googleLogin, 
-  checkUser 
-} from '../controllers/authController.js';
-// import validateBody from '../middlewares/validateBody.js';
-// Assume you have Joi schemas defined in src/validation/authValidation.js
-// import { registerSchema, loginSchema } from '../validation/authValidation.js';
+// FIX: Explicitly import googleLogin and checkUser
+import { register, login, googleLogin, checkUser } from '../controllers/authController.js';
 
 const router = express.Router();
 
-// User Registration: POST /api/auth/register
-// router.post('/register', validateBody(registerSchema), register);
+// User Registration
 router.post('/register', register);
 
-// User Login: POST /api/auth/login
-// router.post('/login', validateBody(loginSchema), login);
+// User Login (Standard)
 router.post('/login', login);
 
-// User Login (Google)
+// User Login (Google) - This was missing or not imported correctly!
 router.post('/google', googleLogin);
 
-// Check if user exists: GET /api/auth/check-user
+// Check if user exists
 router.get('/check-user', checkUser);
 
 export default router;

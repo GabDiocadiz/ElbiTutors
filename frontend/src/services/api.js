@@ -5,7 +5,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// INTERCEPTOR
+// Request Interceptor: Attach Token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -17,13 +17,16 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor
+// Response Interceptor: Handle Errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // FIX: We Log the error, but we MUST return the full 'error' object
+    // so components can check error.response.status (like 404 or 401)
     const message = error.response?.data?.message || 'An unexpected error occurred';
     console.error('API Error:', message);
-    return Promise.reject(message); 
+    
+    return Promise.reject(error); // Return the OBJECT, not just the string
   }
 );
 
