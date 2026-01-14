@@ -11,6 +11,8 @@ import SubjectCatalog from "../src/models/SubjectCatalog.js";
 // Controllers
 import { getTutors, getTutorById, updateTutorProfile } from "../src/controllers/tutorController.js";
 import { getSubjects, createSubject } from "../src/controllers/subjectController.js";
+import errorMiddleware from "../src/middlewares/errorMiddleware.js";
+import ApiError from "../src/utils/ApiError.js";
 
 // --- 1. MOCK MIDDLEWARE ---
 let mockUser = {
@@ -26,12 +28,12 @@ const mockProtect = (req, res, next) => {
 
 const mockAdminOnly = (req, res, next) => {
   if (req.user.role === 'admin') next();
-  else res.status(403).json({ message: "Admin only" });
+  else next(new ApiError("Admin only", 403));
 };
 
 const mockTutorOnly = (req, res, next) => {
   if (req.user.role === 'tutor') next();
-  else res.status(403).json({ message: "Tutor only" });
+  else next(new ApiError("Tutor only", 403));
 };
 
 // --- 2. SETUP APP & ROUTES ---
@@ -49,6 +51,9 @@ const subjectRouter = express.Router();
 subjectRouter.get("/", getSubjects);
 subjectRouter.post("/", mockProtect, mockAdminOnly, createSubject);
 app.use("/api/subjects", subjectRouter);
+
+// Error Middleware
+app.use(errorMiddleware);
 
 
 // --- 3. DB SETUP ---
