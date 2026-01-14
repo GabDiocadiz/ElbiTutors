@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-// import NavBar from '../components/NavBar'; // Removed as requested
 import Footer from '../components/Footer';
 import ReportModal from '../components/ReportModal';
 import CancellationModal from '../components/CancellationModal';
 import EvaluationForm from '../components/EvaluationForm';
 import BookingDetails from '../components/BookingDetails';
-import Calendar from '../components/Calendar'; // Import the Calendar component
+import Calendar from '../components/Calendar';
 
 // Assets
 import lrcBadge from '../assets/logo_lrc.png';
@@ -16,77 +15,89 @@ import userPlaceholder from '../assets/user_placeholder.png';
 import '../styles/design.css';
 
 const Profile = () => {
-  const { user: authUser } = useAuth();
+  const { user: authUser } = useAuth(); // Contains Google profile info (name, email, picture)
+  
+  // Database States
+  const [dbUser, setDbUser] = useState(null);
+  const [tutorData, setTutorData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // UI States
   const [showReport, setShowReport] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
   const [showEvaluation, setShowEvaluation] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  
-  // State for toggling calendar edit mode
   const [isEditingAvailability, setIsEditingAvailability] = useState(false);
 
-  // Sync user state with authUser while keeping layout test data active
-  const [user, setUser] = useState({
-    name: "Maryz Cabatingan",
-    email: "maryz@up.edu.ph",
-    role: "tutor", // CHANGE THIS TO 'tutee' to see tutee view
-    avatar: userPlaceholder,
-    bio: "Coding is problem-solving in action. I help my peers understand data structures and computation by walking them through exercises step by step, focusing on logic and debugging.",
-    courses: "CMSC 12, CMSC 21, CMSC 123, CMSC 150",
-    experiences: [
-      "Been tutoring for one year",
-      "Worked part-time as an online tutor",
-      "UPLB YSES Scholastic Head (A.Y. 2028-2029)",
-      "P2OJECT YSES: Junior HackFest 2nd Runner Up"
-    ]
-  });
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  // Expanded Mock Data (13+ items)
+  // Mock Bookings (Replace with API call in future iterations)
   const [bookings, setBookings] = useState([
     { id: 1, course: "CHEM 18 by Lance Perus", status: "active" },
     { id: 2, course: "CMSC 123 by Lance Perus", status: "active" },
     { id: 3, course: "STAT 101 by Lance Perus", status: "done" },
     { id: 4, course: "MATH 27 by Lance Perus", status: "evaluated" },
     { id: 5, course: "CMSC 21 by Maryz Cabatingan", status: "active" },
-    { id: 6, course: "PHYS 71 by John Doe", status: "done" },
-    { id: 7, course: "BIO 11 by Jane Smith", status: "evaluated" },
-    { id: 8, course: "ENG 10 by Alex Jones", status: "active" },
-    { id: 9, course: "ARTS 1 by Sarah Lee", status: "done" },
-    { id: 10, course: "HK 11 by Mike Brown", status: "evaluated" },
-    { id: 11, course: "CMSC 100 by Chris Green", status: "active" },
-    { id: 12, course: "MATH 53 by Pat White", status: "done" },
-    { id: 13, course: "CHEM 40 by Sam Black", status: "active" },
-    { id: 14, course: "SOSC 3 by Kim Red", status: "done" },
   ]);
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const isTutor = user.role === 'tutor';
-  const itemsPerPage = 5; // Fixed to 5 items max per page for both roles
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        };
 
-  // Calculate Pagination
+        // 1. Fetch User Info from Database (userController.getUserProfile)
+        const userRes = await fetch('/api/users/me', { headers });
+        if (!userRes.ok) throw new Error('Failed to fetch user');
+        const userData = await userRes.json();
+        setDbUser(userData);
+
+        // 2. If User is a Tutor in DB, fetch Tutor specific profile
+        if (userData.role === 'tutor') {
+          const tutorRes = await fetch('/api/tutors/profile', { headers });
+          if (tutorRes.ok) {
+            const tutorInfo = await tutorRes.json();
+            setTutorData(tutorInfo);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
+
+  /**
+   * INTEGRATION LOGIC
+   * 1. Identity (Name, Email, Picture) comes from Google Profile (authUser)
+   * 2. Role and Academic details come from Database (dbUser)
+   */
+  const isTutor = dbUser?.role === 'tutor';
+  
+  // Use authUser for identity, fallback to dbUser
+  const displayName = authUser?.name || dbUser?.name || "User";
+  const displayEmail = authUser?.email || dbUser?.email || "";
+  
+  // Fix for Profile Picture: Check authUser.picture first (Google), then dbUser.picture, then placeholder
+  const displayAvatar = authUser?.picture || dbUser?.picture || userPlaceholder;
+
+  // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentBookings = bookings.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(bookings.length / itemsPerPage);
 
-  // Reset to page 1 if role changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [user.role]);
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
+  const handleNextPage = () => currentPage < totalPages && setCurrentPage(prev => prev + 1);
+  const handlePrevPage = () => currentPage > 1 && setCurrentPage(prev => prev - 1);
 
   const handleAction = (type, booking) => {
     setSelectedBooking(booking);
@@ -97,30 +108,46 @@ const Profile = () => {
   };
 
   const handleEvaluationSubmit = () => {
-    // Update the booking status to 'evaluated'
     if (selectedBooking) {
       setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, status: 'evaluated' } : b));
     }
     setShowEvaluation(false);
   };
 
+  if (loading) {
+    return (
+      <div className="profile-loading-container">
+        <div className="loader"></div>
+        <p>Syncing Profile...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="profile-page-bg">
-      {/* NavBar removed as requested */}
-      
       <div className="profile-container">
         {/* HEADER SECTION */}
         <header className="profile-header">
           <div className="profile-header-left">
             <div className="profile-avatar-wrapper">
-              <img src={user.avatar} alt={user.name} className="profile-avatar" />
+              <img 
+                src={displayAvatar} 
+                alt={displayName} 
+                className="profile-avatar" 
+                onError={(e) => { e.target.src = userPlaceholder; }}
+              />
             </div>
             <div className="profile-identity">
-              <h1 className="profile-name">{user.name}</h1>
-              <p className="profile-email">{user.email}</p>
+              <h1 className="profile-name">{displayName}</h1>
+              <p className="profile-email">{displayEmail}</p>
+              {/* Academic info always from DB */}
+              <p className="profile-academic-info">
+                {dbUser?.degree_program} | {dbUser?.classification}
+              </p>
             </div>
           </div>
 
+          {/* LRC Badge: Visible if DB role is tutor */}
           {isTutor && (
             <div className="profile-badge-section">
               <img src={lrcBadge} alt="LRC Logo" className="badge-logo" />
@@ -129,28 +156,26 @@ const Profile = () => {
           )}
         </header>
 
-        {/* INFO GRID - Only visible for Tutors */}
-        {isTutor && (
+        {/* INFO GRID - Only for Tutors */}
+        {isTutor && tutorData && (
           <div className="tutor-info-grid">
             <div className="info-column-left">
               <div className="info-card bio-card">
-                <p>{user.bio}</p>
+                <p>{tutorData.bio || "No bio available. Add one in settings!"}</p>
               </div>
               <div className="info-card courses-card">
                 <h3 className="card-label">Course(s) Offered</h3>
-                <p>{user.courses}</p>
+                <p>{tutorData.subjectsOffered?.join(', ') || "None listed"}</p>
               </div>
             </div>
             <div className="info-card exp-card">
-              <h3 className="card-title-maroon">Experiences</h3>
-              <ul className="exp-list">
-                {user.experiences.map((exp, i) => <li key={i}>{exp}</li>)}
-              </ul>
+              <h3 className="card-title-maroon">Specialization</h3>
+              <p>{tutorData.specializationText || "Generalist"}</p>
             </div>
           </div>
         )}
 
-        {/* REPORT LINK SECTION */}
+        {/* REPORT LINK - Tutee Only */}
         {!isTutor && (
           <div className="report-link-section" style={{ textAlign: 'center', marginBottom: '20px' }}>
             <p>
@@ -186,15 +211,11 @@ const Profile = () => {
                     {booking.status === 'evaluated' ? 'Done' : booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                   </span>
                   
-                  {/* Action Buttons Logic */}
                   <div className="action-buttons">
-                    {/* Active bookings */}
                     {booking.status === 'active' && (
-                      // UNIFIED ACTION: Both Tutors and Tutees see "View" for active bookings
                       <button className="btn-pill btn-view" onClick={() => handleAction('view', booking)}>View</button>
                     )}
 
-                    {/* Tutee Actions for Done/Evaluated sessions */}
                     {!isTutor && (
                       <>
                         {booking.status === 'done' && (
@@ -218,7 +239,6 @@ const Profile = () => {
                       </>
                     )}
                     
-                    {/* Tutor View for Past Sessions - Show View Details instead of nothing */}
                     {isTutor && booking.status !== 'active' && (
                        <button className="btn-pill btn-view" onClick={() => handleAction('view', booking)}>View</button>
                     )}
@@ -228,29 +248,16 @@ const Profile = () => {
             ))}
           </div>
 
-          {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="pagination-container">
-              <button 
-                className="pagination-btn" 
-                onClick={handlePrevPage} 
-                disabled={currentPage === 1}
-              >
-                Prev
-              </button>
+              <button className="pagination-btn" onClick={handlePrevPage} disabled={currentPage === 1}>Prev</button>
               <span className="pagination-info">Page {currentPage} of {totalPages}</span>
-              <button 
-                className="pagination-btn" 
-                onClick={handleNextPage} 
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
+              <button className="pagination-btn" onClick={handleNextPage} disabled={currentPage === totalPages}>Next</button>
             </div>
           )}
         </section>
 
-        {/* AVAILABILITY SECTION - Only visible for Tutors */}
+        {/* AVAILABILITY SECTION - Only for Tutors */}
         {isTutor && (
           <section className="availability-container">
             <div className="availability-header-row">
@@ -263,12 +270,13 @@ const Profile = () => {
               </button>
             </div>
             
-            {/* Always show Calendar, toggle interactivity via readOnly prop */}
-            <Calendar readOnly={!isEditingAvailability} />
+            <Calendar 
+              readOnly={!isEditingAvailability} 
+              initialEvents={tutorData?.availabilityImage} 
+            />
           </section>
         )}
 
-        {/* Spacer to push footer down */}
         <div className="profile-footer-spacer"></div>
       </div>
 
