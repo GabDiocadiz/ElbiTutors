@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 // import requestLogger from './middlewares/requestLogger.js';
-// import errorMiddleware from './middlewares/errorMiddleware.js';
+import errorMiddleware from './middlewares/errorMiddleware.js';
 
 import sessionRoutes from "./routes/sessionRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -33,7 +33,7 @@ app.get("/", (req, res) => {
   res.send("===== ElbiTutors API is running =====");
 });
 
-// TODO: Implement errorMiddleware
-// app.use(errorMiddleware);
+// Implement errorMiddleware
+app.use(errorMiddleware);
 
 export default app;

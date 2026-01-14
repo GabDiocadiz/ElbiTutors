@@ -1,5 +1,6 @@
 import Session from "../models/Session.js";
 import User from "../models/User.js";
+import ApiError from "../utils/ApiError.js";
 
 /**
  * @desc    Book a new session
@@ -7,7 +8,7 @@ import User from "../models/User.js";
  * @access  Private (Tutee)
  * @srs     4.5 Session Booking & 4.7 Group Tutoring
  */
-export const bookSession = async (req, res) => {
+export const bookSession = async (req, res, next) => {
   try {
     const { 
       tutorId, 
@@ -24,17 +25,17 @@ export const bookSession = async (req, res) => {
     const now = new Date();
 
     if (start < now) {
-      return res.status(400).json({ message: "Cannot book sessions in the past." });
+      throw new ApiError("Cannot book sessions in the past.", 400);
     }
 
     if (start >= end) {
-      return res.status(400).json({ message: "Start time must be before end time." });
+      throw new ApiError("Start time must be before end time.", 400);
     }
 
     // Optional: Max 4 hours per session ({ end - start } / { 1000 * 60 * 60 })
     const durationHours = (end - start) / 3600000;
     if (durationHours > 4) {
-      return res.status(400).json({ message: "Session cannot exceed 4 hours." });
+      throw new ApiError("Session cannot exceed 4 hours.", 400);
     }
 
     // --- 1.5. SESSION LIMIT CHECK (SRS Constraint) ---
@@ -45,9 +46,7 @@ export const bookSession = async (req, res) => {
     });
 
     if (activeSessionsCount >= 3) {
-      return res.status(400).json({ 
-        message: "Booking failed. You have reached the maximum limit of 3 active sessions (pending or approved). Please complete a session before booking a new one." 
-      });
+      throw new ApiError("Booking failed. You have reached the maximum limit of 3 active sessions (pending or approved). Please complete a session before booking a new one.", 400);
     }
 
     // --- 2. GROUP SESSION LOGIC (SRS 4.7) ---
@@ -55,12 +54,12 @@ export const bookSession = async (req, res) => {
     if (isGroup) {
       // SRS Limit: "No more than five students"
       if (!participantsCount || participantsCount < 2 || participantsCount > 5) {
-        return res.status(400).json({ message: "Group sessions must have between 2 and 5 participants." });
+        throw new ApiError("Group sessions must have between 2 and 5 participants.", 400);
       }
       maxParticipants = participantsCount;
     } else {
       if (participantsCount && participantsCount > 1) {
-        return res.status(400).json({ message: "Please enable Group Mode to book for multiple students." });
+        throw new ApiError("Please enable Group Mode to book for multiple students.", 400);
       }
     }
 
@@ -75,9 +74,7 @@ export const bookSession = async (req, res) => {
     });
 
     if (conflict) {
-      return res.status(400).json({ 
-        message: "This time slot is already booked or pending approval." 
-      });
+      throw new ApiError("This time slot is already booked or pending approval.", 400);
     }
 
     // --- 4. CREATE SESSION ---
@@ -102,8 +99,7 @@ export const bookSession = async (req, res) => {
     res.status(201).json(session);
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server Error: Unable to book session." });
+    next(error);
   }
 };
 
@@ -112,7 +108,7 @@ export const bookSession = async (req, res) => {
  * @route   GET /api/sessions/my-sessions
  * @access  Private
  */
-export const getMySessions = async (req, res) => {
+export const getMySessions = async (req, res, next) => {
   try {
     const isTutor = req.user.role === 'tutor';
     const query = isTutor 
@@ -126,7 +122,7 @@ export const getMySessions = async (req, res) => {
 
     res.json(sessions);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -136,12 +132,12 @@ export const getMySessions = async (req, res) => {
  * @access  Private (Admin Only)
  * @srs     4.3.3 REQ-8 & 4.5.3 REQ-4
  */
-export const updateSessionStatus = async (req, res) => {
+export const updateSessionStatus = async (req, res, next) => {
   const { status } = req.body; 
 
   const validStatuses = ["approved", "rejected", "done"];
   if (!validStatuses.includes(status)) {
-    return res.status(400).json({ message: `Invalid status. Allowed: ${validStatuses.join(", ")}` });
+    throw new ApiError(`Invalid status. Allowed: ${validStatuses.join(", ")}`, 400);
   }
 
   try {
@@ -149,7 +145,7 @@ export const updateSessionStatus = async (req, res) => {
       .populate("tutorId", "email name")
       .populate("createdByTuteeId", "email name");
 
-    if (!session) return res.status(404).json({ message: "Session not found" });
+    if (!session) throw new ApiError("Session not found", 404);
 
     session.status = status;
     session.approvedByAdminId = req.user._id;
@@ -163,6 +159,6 @@ export const updateSessionStatus = async (req, res) => {
     res.json(updatedSession);
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };
