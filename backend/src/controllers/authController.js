@@ -8,8 +8,7 @@ import ApiError from "../utils/ApiError.js";
  * IMPORTANT:
  * This client ID MUST MATCH the frontend GoogleLogin client_id
  */
-const GOOGLE_CLIENT_ID =
-  "411286976139-urkdn2k4j6p5s4924en02l81n6jsvtmc.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "411286976139-urkdn2k4j6p5s4924en02l81n6jsvtmc.apps.googleusercontent.com";
 
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
@@ -20,7 +19,7 @@ const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
  */
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password, role, degree_program, classification } =
+    const { name, email, password, role, degree_program, classification, student_number } =
       req.body;
 
     const existingUser = await User.findOne({
@@ -40,6 +39,7 @@ export const register = async (req, res, next) => {
       role: role || "tutee",
       degree_program,
       classification,
+      student_number,
       email_verified: true,
     });
 
@@ -113,7 +113,7 @@ export const googleLogin = async (req, res, next) => {
   try {
     const idToken = req.body.credential || req.body.idToken;
 
-    const { degree_program, classification } = req.body;
+    const { degree_program, classification, student_number } = req.body;
 
     if (!idToken) {
       console.error("❌ Missing Google ID token:", req.body);
@@ -195,6 +195,7 @@ export const googleLogin = async (req, res, next) => {
         email_verified: true,
         degree_program: degree_program || "Not set",
         classification: classification || "Not set",
+        student_number: student_number || "Not set",
       });
 
     }

@@ -25,19 +25,19 @@ export const protect = async (req, res, next) => {
                 return next(error);
             }
 
-            next();
+            return next();
         } catch (error) {
-            console.error(error);
+            console.error('JWT Verification Error:', error.message);
             const err = new Error('Not authorized, token failed');
             err.statusCode = 401;
-            next(err);
+            return next(err);
         }
     }
 
     if (!token) {
         const error = new Error('Not authorized, no token');
         error.statusCode = 401;
-        next(error);
+        return next(error);
     }
 };
 

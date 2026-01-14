@@ -62,7 +62,14 @@ describe('Auth Controller - Google Login', () => {
     });
 
     it('should authenticate a valid UP student and return a token', async () => {
-        const req = { body: { googleToken: 'valid_token' } };
+        const req = { 
+            body: { 
+                credential: 'valid_token',
+                degree_program: 'BS Computer Science',
+                classification: 'Freshman',
+                student_number: '2023-12345'
+            } 
+        };
         const res = mockRes();
 
         // Setup User mock behavior
@@ -87,7 +94,7 @@ describe('Auth Controller - Google Login', () => {
     });
 
     it('should reject a non-UP email address', async () => {
-        const req = { body: { googleToken: 'invalid_domain' } };
+        const req = { body: { credential: 'invalid_domain' } };
         const res = mockRes();
 
         await googleLogin(req, res, mockNext);

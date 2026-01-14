@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
+  student_number: { type: String, unique: true, sparse: true },
   role: { type: String, enum: ["tutee", "tutor", "admin"], default: "tutee" },
   degree_program: { type: String },
   classification: { type: String },
