@@ -1,95 +1,95 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useGoogleLogin } from '@react-oauth/google'; // Real Google Login Hook
-import axios from 'axios';
-import { useAuth } from '../../hooks/useAuth';
-import api from '../../services/api';
-import logoLightMode from '../../assets/logo_lightmode.png';
-import '../../styles/design.css';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../../hooks/useAuth";
+import api from "../../services/api";
+import logoLightMode from "../../assets/logo_lightmode.png";
+import "../../styles/design.css";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
-  const { setAuthSession } = useAuth(); 
+  const { setAuthSession } = useAuth();
   const navigate = useNavigate();
 
-  // --- REAL GOOGLE LOGIN IMPLEMENTATION ---
-  const loginToGoogle = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        setLoading(true);
-        
-        // 1. Fetch Real User Info from Google
-        const userInfo = await axios.get(
-          'https://www.googleapis.com/oauth2/v3/userinfo',
-          { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
-        );
+  /**
+   * ============================
+   * GOOGLE LOGIN SUCCESS
+   * ============================
+   */
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
 
-        const googleUser = userInfo.data; // Contains email, name, picture, sub (id)
+      // Send ID token to backend
+      const { data } = await api.post("/auth/google", {
+        credential: credentialResponse.credential,
+      });
 
-        // 2. Check Backend with Real Data
-        try {
-          const { data } = await api.post('/auth/google', {
-              email: googleUser.email,
-              googleId: googleUser.sub,
-              name: googleUser.name,
-              picture: googleUser.picture
-          });
+      // Existing user → log in
+      setAuthSession(data.token, data.user);
+      navigate("/dashboard");
 
-          // SUCCESS: Log in
-          console.log("Login Success:", data.user);
-          setAuthSession(data.token, data.user);
-          navigate('/dashboard');
-
-        } catch (backendError) {
-          if (backendError.response && backendError.response.status === 404) {
-               // USER NOT FOUND -> New User Flow (Go to Basic Info)
-               // Map Google Data to our expected format
-               navigate('/basic-info', { 
-                 state: { 
-                   googleUser: {
-                     email: googleUser.email,
-                     displayName: googleUser.name,
-                     photoURL: googleUser.picture,
-                     uid: googleUser.sub
-                   },
-                   role: 'tutee' 
-                 } 
-               });
-          } else {
-               const msg = backendError.response?.data?.message || "Unknown error";
-               alert('Login Server Error: ' + msg);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to get user info from Google", error);
-        alert("Could not retrieve Google Profile.");
-      } finally {
-        setLoading(false);
+    } catch (err) {
+      // New user → onboarding
+      if (err.response?.status === 404) {
+        navigate("/basic-info", {
+          state: {
+            googleData: err.response.data.googleData,
+            role: "tutee",
+          },
+        });
+      } else {
+        alert(err.response?.data?.message || "Google login failed");
       }
-    },
-    onError: () => {
-      alert('Google Login Failed');
+    } finally {
       setLoading(false);
     }
-  });
+  };
+
+  /**
+   * ============================
+   * CUSTOM BUTTON HANDLER
+   * ============================
+   */
+  const handleCustomButtonClick = () => {
+    // Trigger the hidden GoogleLogin button
+    document.querySelector('div[role="button"]')?.click();
+  };
 
   return (
     <div className="login-page-container">
       <div className="login-content-wrapper">
         <div className="login-step-container">
-          <img src={logoLightMode} alt="ELBI Tutors" className="login-main-logo" />
-          
-          <button 
-            onClick={() => loginToGoogle()} // Triggers the popup
+          <img
+            src={logoLightMode}
+            alt="ELBI Tutors"
+            className="login-main-logo"
+          />
+
+          {/* --- YOUR ORIGINAL MAROON BUTTON --- */}
+          <button
+            onClick={handleCustomButtonClick}
             className="login-btn-maroon"
             disabled={loading}
           >
-            {loading ? 'Connecting...' : <>Login with <strong>UP Mail</strong></>}
+            {loading ? "Connecting..." : <>Login with <strong>UP Mail</strong></>}
           </button>
-          
-          <button onClick={() => navigate('/about')} className="login-btn-gray">
+
+          <button
+            onClick={() => navigate("/about")}
+            className="login-btn-gray"
+          >
             What is ElBiTutors?
           </button>
+
+          {/* --- HIDDEN GOOGLE LOGIN --- */}
+          <div style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => alert("Google Login Failed")}
+              useOneTap={false}
+            />
+          </div>
         </div>
       </div>
     </div>

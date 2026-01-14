@@ -1,195 +1,264 @@
-import jwt from 'jsonwebtoken';
-import { OAuth2Client } from 'google-auth-library';
-import User from '../models/User.js';
-import Tutor from '../models/Tutor.js';
-import ApiError from '../utils/ApiError.js';
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+import bcrypt from "bcryptjs";
+import User from "../models/User.js";
+import ApiError from "../utils/ApiError.js";
 
 /**
- * @desc    Authenticate User via Google OAuth Token
- * @route   POST /api/auth/google
- * @access  Public
- * @srs     3.1 User Authentication: "strict identity verification via UPMail"
- * @srs     5.3 Security Requirements: "Google OAuth against the user's UPMail"
+ * IMPORTANT:
+ * This client ID MUST MATCH the frontend GoogleLogin client_id
  */
-export const googleLogin = async (req, res, next) => {
-    try {
-        const { googleToken } = req.body;
+const GOOGLE_CLIENT_ID =
+  "411286976139-urkdn2k4j6p5s4924en02l81n6jsvtmc.apps.googleusercontent.com";
 
-        if (!googleToken) {
-            throw new ApiError('Google token is required', 400);
-        }
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-        // 1. Verify Google Token
-        // NOTE: In production, clientID must be verified. 
-        // For development/mocking, we trust the payload if verified.
-        let ticket;
-        let payload;
-
-        try {
-             ticket = await client.verifyIdToken({
-                idToken: googleToken,
-                audience: process.env.GOOGLE_CLIENT_ID, 
-            });
-            payload = ticket.getPayload();
-        } catch (verifyError) {
-             // FALLBACK FOR MOCK/TESTING (If configured)
-             if (process.env.NODE_ENV === 'development' && googleToken.startsWith('mock_')) {
-                 console.log("Using Mock Token for Development");
-                 payload = {
-                     email: "mock_student@up.edu.ph",
-                     name: "Mock Student",
-                     sub: "mock_google_id_123",
-                     picture: "https://example.com/pic.jpg",
-                     hd: "up.edu.ph"
-                 };
-             } else {
-                 throw new ApiError('Invalid Google Token', 401);
-             }
-        }
-
-        const { email, name, sub, picture, hd } = payload;
-
-        // 2. Enforce @up.edu.ph Domain (SRS 5.3)
-        // 'hd' (hosted domain) claim usually present for GSuite emails
-        if (hd !== 'up.edu.ph' && !email.endsWith('@up.edu.ph')) {
-            throw new ApiError('Access Restricted: Only @up.edu.ph emails are allowed.', 403);
-        }
-
-        // 3. Find or Create User
-        let user = await User.findOne({ email });
-
-        if (user) {
-            // Update existing user metadata if needed
-            if (!user.google_sub) {
-                user.google_sub = sub;
-                user.picture = picture;
-                await user.save();
-            }
-        } else {
-            // Register new Tutee
-            user = await User.create({
-                name,
-                email,
-                role: 'tutee', // Default Role
-                google_sub: sub,
-                picture,
-                email_verified: true,
-                degree_program: '', // To be filled in Profile
-                classification: ''
-            });
-        }
-
-        // 4. Generate JWT for our API
-        const token = jwt.sign(
-            { id: user._id, role: user.role, isLRCAdmin: user.isLRCAdmin },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
-        res.status(200).json({
-            success: true,
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                picture: user.picture
-            }
-        });
-
-    } catch (err) {
-        next(err);
-    }
-};
-
-// --- 3. GOOGLE LOGIN (For "Login with UP Mail") ---
-export const googleLogin = async (req, res, next) => {
+/**
+ * ============================
+ * STANDARD REGISTRATION
+ * ============================
+ */
+export const register = async (req, res, next) => {
   try {
-    const { 
-      email, googleId, name, picture, 
-      degree_program, classification
-      // Removed 'role' from input because self-registration is ALWAYS 'tutee'
-    } = req.body; 
+    const { name, email, password, role, degree_program, classification } =
+      req.body;
 
-    let user = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      email: email.toLowerCase(),
+    });
 
-    if (!user) {
-      // SCENARIO 1: New User Registration (Tutee Only)
-      if (degree_program && classification) {
-        user = await User.create({
-          name,
-          email,
-          google_sub: googleId,
-          picture,
-          degree_program,
-          classification,
-          role: 'tutee', // FORCE ROLE TO TUTEE
-          email_verified: true
-        });
-      } else {
-        // SCENARIO 2: Frontend asking "Does this user exist?"
-        // Return 404 to trigger Onboarding Flow
-        return res.status(404).json({ message: "User not found" });
-      }
+    if (existingUser) {
+      throw new ApiError("User already exists", 400);
     }
 
-    // SCENARIO 3: Existing User (Tutee OR Pre-created Tutor)
-    // Update Sync
-    if (!user.google_sub) user.google_sub = googleId;
-    if (!user.picture) user.picture = picture;
-    await user.save();
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate Token
-    const token = jwt.sign(
-        { id: user._id, role: user.role }, 
-        process.env.JWT_SECRET, 
-        { expiresIn: '7d' }
-    );
+    await User.create({
+      name,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      role: role || "tutee",
+      degree_program,
+      classification,
+      email_verified: true,
+    });
 
-    res.status(200).json({ 
-        success: true, 
-        token, 
-        user: {
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            picture: user.picture
-        }
+    res.status(201).json({
+      success: true,
+      message: "User registered successfully",
     });
   } catch (err) {
     next(err);
   }
 };
 
+/**
+ * ============================
+ * STANDARD LOGIN
+ * ============================
+ */
+export const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+    });
+
+    if (!user || !user.password) {
+      throw new ApiError("Invalid email or password", 401);
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      throw new ApiError("Invalid email or password", 401);
+    }
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        isLRCAdmin: user.isLRCAdmin,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        picture: user.picture,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * ============================
+ * GOOGLE LOGIN (ID TOKEN FLOW)
+ * ============================
+ * Accepts:
+ *  - credential (Google Identity Services)
+ *  - idToken (fallback)
+ */
+export const googleLogin = async (req, res, next) => {
+  try {
+    const idToken = req.body.credential || req.body.idToken;
+
+    const { degree_program, classification } = req.body;
+
+    if (!idToken) {
+      console.error("❌ Missing Google ID token:", req.body);
+      throw new ApiError("Google ID token is required", 400);
+    }
+
+    /**
+     * 1. VERIFY GOOGLE ID TOKEN
+     */
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    const {
+      email,
+      name,
+      sub: googleSub,
+      picture,
+      hd,
+    } = payload;
+
+    /**
+     * 2. ENFORCE UP MAIL DOMAIN
+     */
+    if (hd !== "up.edu.ph" && !email.endsWith("@up.edu.ph")) {
+      throw new ApiError(
+        "Access restricted: only @up.edu.ph accounts are allowed",
+        403
+      );
+    }
+
+    /**
+     * 3. FIND OR CREATE USER
+     */
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (user) {
+      let updated = false;
+
+      if (!user.google_sub) {
+        user.google_sub = googleSub;
+        updated = true;
+      }
+
+      if (user.picture !== picture) {
+        user.picture = picture;
+        updated = true;
+      }
+
+      if (user.name !== name) {
+        user.name = name; // sync full name from Google
+        updated = true;
+      }
+
+      if (updated) await user.save();
+    }
+    else {
+      /**
+       * If onboarding data missing → frontend should handle this
+       */
+      if (!degree_program || !classification) {
+        return res.status(404).json({
+          success: false,
+          message: "User not onboarded",
+          googleData: {
+            email,
+            name,
+            picture,
+          },
+        });
+      }
+
+      user = await User.create({
+        name,
+        email: email.toLowerCase(),
+        role: "tutee",
+        google_sub: googleSub,
+        picture,
+        email_verified: true,
+        degree_program,
+        classification,
+      });
+    }
+
+    /**
+     * 4. ISSUE JWT
+     */
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        isLRCAdmin: user.isLRCAdmin,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        picture: user.picture,
+      },
+    });
+  } catch (err) {
+    console.error("❌ Google Auth Error:", err.message);
+    next(err);
+  }
+};
+
+/**
+ * ============================
+ * CHECK USER EXISTENCE
+ * ============================
+ */
 export const checkUser = async (req, res, next) => {
   try {
     const { email } = req.query;
 
     if (!email) {
-      const error = new Error('Email is required');
-      error.statusCode = 400;
-      return next(error);
+      throw new ApiError("Email is required", 400);
     }
 
-    // Normalize email to lowercase
-    const normalizedEmail = email.toLowerCase();
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+    });
 
-    // Check if user exists
-    const user = await User.findOne({ email: normalizedEmail });
-
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       exists: !!user,
-      user: user ? {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      } : null
+      user: user
+        ? {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          }
+        : null,
     });
   } catch (err) {
     next(err);
