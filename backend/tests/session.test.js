@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import Session from "../src/models/Session.js"; // Your Model
 import User from "../src/models/User.js";
+import errorMiddleware from "../src/middlewares/errorMiddleware.js";
+import ApiError from "../src/utils/ApiError.js";
 
 // --- 1. MOCK AUTH MIDDLEWARE ---
 // We overwrite the 'protect' and 'adminOnly' middleware logic here.
@@ -24,7 +26,7 @@ const mockAdminOnly = (req, res, next) => {
   if (req.user.role === 'admin' || req.user.isLRCAdmin) {
     next();
   } else {
-    res.status(403).json({ message: "Not authorized as Admin" });
+    next(new ApiError("Not authorized as Admin", 403));
   }
 };
 
@@ -51,6 +53,9 @@ const testRouter = express.Router();
 testRouter.post("/", mockProtect, bookSession);
 testRouter.put("/:id/status", mockProtect, mockAdminOnly, updateSessionStatus);
 app.use("/api/sessions", testRouter);
+
+// Apply Global Error Middleware to Test App
+app.use(errorMiddleware);
 
 
 // --- 3. DATABASE SETUP ---

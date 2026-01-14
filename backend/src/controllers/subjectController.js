@@ -1,4 +1,5 @@
 import SubjectCatalog from "../models/SubjectCatalog.js";
+import ApiError from "../utils/ApiError.js";
 
 /**
  * @desc    Get all active subjects
@@ -6,7 +7,7 @@ import SubjectCatalog from "../models/SubjectCatalog.js";
  * @access  Public
  * @srs     2.2 Product Functions (Course codes as searchable tags)
  */
-export const getSubjects = async (req, res) => {
+export const getSubjects = async (req, res, next) => {
   try {
     const subjects = await SubjectCatalog.find({ active: true })
       .select("code name classification")
@@ -14,8 +15,7 @@ export const getSubjects = async (req, res) => {
       
     res.json(subjects);
   } catch (error) {
-    console.error("Error fetching subjects:", error);
-    res.status(500).json({ message: "Server Error: Unable to fetch subject catalog." });
+    next(error);
   }
 };
 
@@ -25,12 +25,12 @@ export const getSubjects = async (req, res) => {
  * @access  Private (Admin Only)
  * @note    Utility for Admins to populate the dropdowns
  */
-export const createSubject = async (req, res) => {
+export const createSubject = async (req, res, next) => {
   const { code, name, classification } = req.body;
 
   // Input Validation
   if (!code || !name) {
-    return res.status(400).json({ message: "Subject code and name are required." });
+    throw new ApiError("Subject code and name are required.", 400);
   }
 
   try {
@@ -40,7 +40,7 @@ export const createSubject = async (req, res) => {
     // Duplicate Check
     const exists = await SubjectCatalog.findOne({ code: normalizedCode });
     if (exists) {
-      return res.status(400).json({ message: `Subject code '${normalizedCode}' already exists.` });
+      throw new ApiError(`Subject code '${normalizedCode}' already exists.`, 400);
     }
 
     // 4. Create
@@ -52,6 +52,6 @@ export const createSubject = async (req, res) => {
 
     res.status(201).json(subject);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };

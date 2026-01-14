@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import Tutor from '../models/Tutor.js';
+import ApiError from '../utils/ApiError.js';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -17,9 +18,7 @@ export const googleLogin = async (req, res, next) => {
         const { googleToken } = req.body;
 
         if (!googleToken) {
-            const error = new Error('Google token is required');
-            error.statusCode = 400;
-            throw error;
+            throw new ApiError('Google token is required', 400);
         }
 
         // 1. Verify Google Token
@@ -46,9 +45,7 @@ export const googleLogin = async (req, res, next) => {
                      hd: "up.edu.ph"
                  };
              } else {
-                 const error = new Error('Invalid Google Token');
-                 error.statusCode = 401;
-                 throw error;
+                 throw new ApiError('Invalid Google Token', 401);
              }
         }
 
@@ -57,9 +54,7 @@ export const googleLogin = async (req, res, next) => {
         // 2. Enforce @up.edu.ph Domain (SRS 5.3)
         // 'hd' (hosted domain) claim usually present for GSuite emails
         if (hd !== 'up.edu.ph' && !email.endsWith('@up.edu.ph')) {
-            const error = new Error('Access Restricted: Only @up.edu.ph emails are allowed.');
-            error.statusCode = 403;
-            throw error;
+            throw new ApiError('Access Restricted: Only @up.edu.ph emails are allowed.', 403);
         }
 
         // 3. Find or Create User

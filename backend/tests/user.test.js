@@ -6,6 +6,8 @@ import User from "../src/models/User.js";
 import Tutor from "../src/models/Tutor.js";
 import AuditLog from "../src/models/AuditLog.js";
 import * as userController from "../src/controllers/userController.js";
+import errorMiddleware from "../src/middlewares/errorMiddleware.js";
+import ApiError from "../src/utils/ApiError.js";
 
 // --- 1. MOCK AUTH ---
 let mockUser = {
@@ -21,7 +23,7 @@ const mockProtect = (req, res, next) => {
 
 const mockAdminOnly = (req, res, next) => {
   if (req.user.role === 'admin' || req.user.isLRCAdmin) next();
-  else res.status(403).json({ message: "Not authorized as admin" });
+  else next(new ApiError("Not authorized as admin", 403));
 };
 
 // --- 2. SETUP APP ---
@@ -37,6 +39,9 @@ router.put("/:id/role", mockProtect, mockAdminOnly, userController.updateUserRol
 router.put("/:id/status", mockProtect, mockAdminOnly, userController.updateUserStatus);
 
 app.use("/api/users", router);
+
+// Error Middleware
+app.use(errorMiddleware);
 
 // --- 3. DB SETUP ---
 let mongoServer;
