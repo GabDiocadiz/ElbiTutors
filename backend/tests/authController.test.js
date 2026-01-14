@@ -56,6 +56,9 @@ const mockNext = jest.fn();
 describe('Auth Controller - Google Login', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        process.env.JWT_SECRET = 'test_secret';
+        process.env.GOOGLE_CLIENT_ID = 'test_client_id';
+        process.env.NODE_ENV = 'test';
     });
 
     it('should authenticate a valid UP student and return a token', async () => {
