@@ -1,24 +1,64 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import api from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 // Styling
 import '../styles/Components.css';
 import '../styles/design.css';
 
 const TermsAndConditions = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { setAuthSession } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  const handleAgree = () => {
-    // Navigate to User Homepage / Dashboard
-    navigate('/dashboard');
+  // Get Data passed from BasicInfo
+  const { googleUser, profileData } = location.state || {};
+
+  const handleAgree = async () => {
+    // 1. Validation: Ensure we have the data to register
+    if (!googleUser || !profileData) {
+      alert("Missing registration data. Please restart the process.");
+      navigate('/login');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // 2. Prepare Payload (Force role to 'tutee' for self-registration)
+      const payload = {
+        email: googleUser.email,
+        googleId: googleUser.uid,
+        name: googleUser.displayName,
+        picture: googleUser.photoURL,
+        role: 'tutee', 
+        degree_program: profileData.degreeProgram,
+        classification: profileData.classification
+      };
+
+      // 3. Call Backend to create user
+      const { data } = await api.post('/auth/google', payload);
+
+      // 4. Set Session & Redirect to Dashboard
+      setAuthSession(data.token, data.user);
+      navigate('/dashboard');
+
+    } catch (error) {
+      console.error("Registration failed", error);
+      alert("Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
-    // Navigate back to Basic Info
+    // Navigate back to Basic Info to allow edits
     navigate(-1);
   };
 
   return (
-    <div className="guide-page-container">
+    <div className="guide-page-container fade-in">
       <div className="guide-content-wrapper">
         <h1 className="guide-title">Terms and Conditions</h1>
 
@@ -49,12 +89,20 @@ const TermsAndConditions = () => {
         </div>
 
         <div className="guide-action-area">
-          <button className="guide-btn-cancel" onClick={handleCancel}>
+          <button 
+            className="guide-btn-cancel" 
+            onClick={handleCancel}
+            disabled={loading}
+          >
             Cancel
           </button>
           
-          <button className="guide-btn-agree" onClick={handleAgree}>
-            I Agree
+          <button 
+            className="guide-btn-agree" 
+            onClick={handleAgree}
+            disabled={loading}
+          >
+            {loading ? 'Registering...' : 'I Agree'}
           </button>
         </div>
       </div>

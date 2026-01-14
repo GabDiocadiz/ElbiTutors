@@ -104,3 +104,94 @@ export const googleLogin = async (req, res, next) => {
         next(err);
     }
 };
+
+// --- 3. GOOGLE LOGIN (For "Login with UP Mail") ---
+export const googleLogin = async (req, res, next) => {
+  try {
+    const { 
+      email, googleId, name, picture, 
+      degree_program, classification
+      // Removed 'role' from input because self-registration is ALWAYS 'tutee'
+    } = req.body; 
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // SCENARIO 1: New User Registration (Tutee Only)
+      if (degree_program && classification) {
+        user = await User.create({
+          name,
+          email,
+          google_sub: googleId,
+          picture,
+          degree_program,
+          classification,
+          role: 'tutee', // FORCE ROLE TO TUTEE
+          email_verified: true
+        });
+      } else {
+        // SCENARIO 2: Frontend asking "Does this user exist?"
+        // Return 404 to trigger Onboarding Flow
+        return res.status(404).json({ message: "User not found" });
+      }
+    }
+
+    // SCENARIO 3: Existing User (Tutee OR Pre-created Tutor)
+    // Update Sync
+    if (!user.google_sub) user.google_sub = googleId;
+    if (!user.picture) user.picture = picture;
+    await user.save();
+
+    // Generate Token
+    const token = jwt.sign(
+        { id: user._id, role: user.role }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: '7d' }
+    );
+
+    res.status(200).json({ 
+        success: true, 
+        token, 
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            picture: user.picture
+        }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const checkUser = async (req, res, next) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      const error = new Error('Email is required');
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    // Normalize email to lowercase
+    const normalizedEmail = email.toLowerCase();
+
+    // Check if user exists
+    const user = await User.findOne({ email: normalizedEmail });
+
+    res.status(200).json({ 
+      success: true, 
+      exists: !!user,
+      user: user ? {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      } : null
+    });
+  } catch (err) {
+    next(err);
+  }
+};

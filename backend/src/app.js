@@ -12,11 +12,17 @@ import reportRoutes from './routes/reportRoutes.js';
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 
 const app = express();
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow your Frontend
+  credentials: true,               // Allow cookies/tokens
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Core Middleware
 app.use(express.json()); // Parses incoming JSON requests
 app.use(express.urlencoded({ extended: true })); // Parses URL-encoded requests
-app.use(cors()); // Enables Cross-Origin Resource Sharing
+// app.use(cors()); // Enables Cross-Origin Resource Sharing
 
 // TODO: Implement requestLogger middleware
 // app.use(requestLogger);
