@@ -4,13 +4,13 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import ApiError from "../utils/ApiError.js";
 
-/**
- * IMPORTANT:
- * This client ID MUST MATCH the frontend GoogleLogin client_id
- */
-const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID;                                                 
-
-const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+// Correctly initialize the Google OAuth client
+// These must be set in your Vercel environment variables
+const googleClient = new OAuth2Client({
+  clientId: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  redirectUri: process.env.GOOGLE_REDIRECT_URI, // e.g., 'https://your-app.vercel.app/api/auth/google'
+});
 
 /**
  * ============================
@@ -110,97 +110,64 @@ export const login = async (req, res, next) => {
 };
 
 /**
- * ============================
- * GOOGLE LOGIN (ID TOKEN FLOW)
- * ============================
- * Accepts:
- *  - credential (Google Identity Services)
- *  - idToken (fallback)
+ * ============================================
+ * GOOGLE LOGIN (AUTHORIZATION CODE FLOW)
+ * ============================================
+ * Handles the server-side exchange of the authorization code for tokens.
  */
 export const googleLogin = async (req, res, next) => {
   try {
-    const idToken = req.body.credential || req.body.idToken;
+    const { code, degree_program, classification, student_number } = req.body;
 
-    const { degree_program, classification, student_number } = req.body;
+    if (!code) {
+      throw new ApiError("Google authorization code is required", 400);
+    }
+
+    // 1. EXCHANGE CODE FOR TOKENS
+    const { tokens } = await googleClient.getToken(code);
+    const idToken = tokens.id_token;
 
     if (!idToken) {
-      console.error("❌ Missing Google ID token:", req.body);
-      throw new ApiError("Google ID token is required", 400);
+      throw new ApiError("Failed to retrieve ID token from Google", 500);
     }
 
-    /**
-     * 1. VERIFY GOOGLE ID TOKEN
-     */
+    // 2. VERIFY THE ID TOKEN
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      audience: GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
-
     const payload = ticket.getPayload();
 
-    const {
-      email,
-      name,
-      sub: googleSub,
-      picture,
-      hd,
-    } = payload;
+    const { email, name, sub: googleSub, picture, hd } = payload;
 
-    /**
-     * 2. ENFORCE UP MAIL DOMAIN
-     */
+    // 3. ENFORCE UP MAIL DOMAIN
     if (hd !== "up.edu.ph" && !email.endsWith("@up.edu.ph")) {
-      throw new ApiError(
-        "Access restricted: only @up.edu.ph accounts are allowed",
-        403
-      );
+      throw new ApiError("Access restricted: only @up.edu.ph accounts are allowed", 403);
     }
 
-    /**
-     * 3. FIND OR CREATE USER
-     */
+    // 4. FIND OR CREATE USER
     let user = await User.findOne({ email: email.toLowerCase() });
 
-    if (user) {
+    if (user) { // Existing user
       let updated = false;
-
-      if (!user.google_sub) {
-        user.google_sub = googleSub;
-        updated = true;
-      }
-
-      if (user.picture !== picture) {
-        user.picture = picture;
-        updated = true;
-      }
-
-      if (user.name !== name) {
-        user.name = name; // sync full name from Google
-        updated = true;
-      }
-
+      if (!user.google_sub) { user.google_sub = googleSub; updated = true; }
+      if (user.picture !== picture) { user.picture = picture; updated = true; }
+      if (user.name !== name) { user.name = name; updated = true; }
       if (updated) await user.save();
 
       // Check Account Status
-      if (user.status === 'suspended') {
-        throw new ApiError("Your account has been suspended due to policy violations.", 403);
-      }
-      if (user.status === 'inactive') {
-        throw new ApiError("This account is inactive.", 403);
-      }
-    }
-    else {
-      /**
-       * If onboarding data missing → frontend should handle this
-       */
+      if (user.status === 'suspended') throw new ApiError("Your account has been suspended due to policy violations.", 403);
+      if (user.status === 'inactive') throw new ApiError("This account is inactive.", 403);
+    } else { // New user
       if (!degree_program || !classification) {
+        // This case is for when a user logs in for the first time without completing the form.
+        // The frontend should have sent the user to an onboarding page first.
         return res.status(404).json({
           success: false,
           message: "User not onboarded",
-          googleData: { email, name, picture },
+          googleData: { email, name, picture, code }, // Send code back if needed
         });
       }
-
 
       user = await User.create({
         name,
@@ -209,22 +176,15 @@ export const googleLogin = async (req, res, next) => {
         google_sub: googleSub,
         picture,
         email_verified: true,
-        degree_program: degree_program || "Not set",
-        classification: classification || "Not set",
-        student_number: student_number || "Not set",
+        degree_program,
+        classification,
+        student_number,
       });
-
     }
 
-    /**
-     * 4. ISSUE JWT
-     */
+    // 5. ISSUE JWT
     const token = jwt.sign(
-      {
-        id: user._id,
-        role: user.role,
-        isLRCAdmin: user.isLRCAdmin,
-      },
+      { id: user._id, role: user.role, isLRCAdmin: user.isLRCAdmin },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -241,10 +201,11 @@ export const googleLogin = async (req, res, next) => {
       },
     });
   } catch (err) {
-    console.error("❌ Google Auth Error:", err.message);
+    console.error("❌ Google Auth Error:", err);
     next(err);
   }
 };
+
 
 /**
  * ============================
@@ -279,3 +240,4 @@ export const checkUser = async (req, res, next) => {
     next(err);
   }
 };
+
