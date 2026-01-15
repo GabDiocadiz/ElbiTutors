@@ -2,7 +2,9 @@ import express from "express";
 import { 
   getTutors, 
   getTutorById, 
-  updateTutorProfile 
+  updateTutorProfile,
+  getPendingTutors,
+  approveTutorChanges
 } from "../controllers/tutorController.js";
 
 // Middleware
