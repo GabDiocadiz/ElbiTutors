@@ -26,8 +26,15 @@ export default function Login() {
 
       // Existing user → log in
       if (response?.data?.token && response?.data?.user) {
-        setAuthSession(response.data.token, response.data.user);
-        navigate("/dashboard");
+        const { token, user } = response.data;
+        setAuthSession(token, user);
+        
+        // Redirect based on role
+        if (user.role === 'admin' || user.isLRCAdmin) {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/dashboard");
+        }
         return;
       }
 

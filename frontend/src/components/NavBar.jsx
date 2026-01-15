@@ -61,6 +61,11 @@ export default function Navbar() {
 
             {/* Dropdown */}
             <div className={`navbar-dropdown ${open ? 'open' : ''}`}>
+              {(user?.role === 'admin' || user?.isLRCAdmin) && (
+                <Link to="/admin/dashboard" className="dropdown-item">
+                  🛠 Admin Dashboard
+                </Link>
+              )}
               <button
                 onClick={logout}
                 className="dropdown-item logout"

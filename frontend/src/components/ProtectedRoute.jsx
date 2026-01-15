@@ -15,8 +15,14 @@ const ProtectedRoute = ({ allowedRoles }) => {
   }
 
   // 3. Logged in but wrong role? (e.g., Tutee trying to access Admin)
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+  if (allowedRoles) {
+    const hasRole = allowedRoles.includes(user.role);
+    const isAdminRequested = allowedRoles.includes('admin');
+    const hasAdminPrivileges = isAdminRequested && user.isLRCAdmin;
+
+    if (!hasRole && !hasAdminPrivileges) {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   // 4. Authorized -> Render the child routes

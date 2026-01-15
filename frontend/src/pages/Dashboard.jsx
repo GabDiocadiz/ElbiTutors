@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/NavBar';
 import Footer from '../components/Footer';
 import logoLightMode from '../assets/logo_lightmode.png';
 import '../styles/design.css';
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = () => {
@@ -37,6 +40,15 @@ export default function Dashboard() {
         <p className="hero-subtitle">
           Connect with peers, certified tutors, and group study opportunities — all in one place.
         </p>
+
+        {/* ADMIN SHORTCUT */}
+        {(user?.role === 'admin' || user?.isLRCAdmin) && (
+          <div style={{ marginTop: '20px' }}>
+            <Link to="/admin/dashboard" className="login-btn-maroon" style={{ textDecoration: 'none', display: 'inline-block' }}>
+              Access Admin Panel
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* Who's on ELBITutors Section */}

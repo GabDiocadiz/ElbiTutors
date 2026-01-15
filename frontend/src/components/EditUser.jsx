@@ -6,13 +6,17 @@ const AdminEditUserModal = ({ isOpen, onClose, user, onSave }) => {
     name: '',
     email: '',
     role: 'tutee',
-    studentNumber: '',
-    degreeProgram: ''
+    student_number: '',
+    degree_program: ''
   });
 
   useEffect(() => {
     if (user) {
-      setFormData(user);
+      setFormData({
+        ...user,
+        student_number: user.student_number || '',
+        degree_program: user.degree_program || ''
+      });
     }
   }, [user]);
 
@@ -66,8 +70,8 @@ const AdminEditUserModal = ({ isOpen, onClose, user, onSave }) => {
               <label className="admin-form-label">Student Number</label>
               <input
                 type="text"
-                name="studentNumber"
-                value={formData.studentNumber}
+                name="student_number"
+                value={formData.student_number}
                 onChange={handleChange}
                 className="admin-form-input"
               />
@@ -91,8 +95,8 @@ const AdminEditUserModal = ({ isOpen, onClose, user, onSave }) => {
             <label className="admin-form-label">Degree Program</label>
             <input
               type="text"
-              name="degreeProgram"
-              value={formData.degreeProgram}
+              name="degree_program"
+              value={formData.degree_program}
               onChange={handleChange}
               className="admin-form-input"
             />

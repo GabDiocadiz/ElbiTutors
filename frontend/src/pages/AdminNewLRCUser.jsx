@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 import '../styles/Admin.css';
 
 export default function AdminNewLRCUser() {
@@ -13,20 +14,14 @@ export default function AdminNewLRCUser() {
     subjects: []
   });
 
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
-
-  // Mock Database for duplicate checking
-  const existingUsers = [
-    { upMail: 'jdelacruz@up.edu.ph', studentNumber: '2023-12345' },
-    { upMail: 'msantos@up.edu.ph', studentNumber: '2022-12345' }
-  ];
 
   const validateForm = () => {
     let newErrors = {};
     let isValid = true;
 
-    // Required fields
     if (!formData.name.trim()) {
       newErrors.name = 'Full Name is required';
       isValid = false;
@@ -47,41 +42,45 @@ export default function AdminNewLRCUser() {
       isValid = false;
     }
 
-    // Duplicate Check
-    const isDuplicateEmail = existingUsers.some(u => u.upMail === formData.upMail);
-    const isDuplicateStudent = existingUsers.some(u => u.studentNumber === formData.studentNumber);
-
-    if (isDuplicateEmail) {
-      newErrors.upMail = 'User with this UP Mail already exists';
-      isValid = false;
-    }
-    if (isDuplicateStudent) {
-      newErrors.studentNumber = 'User with this Student Number already exists';
-      isValid = false;
-    }
-
     setErrors(newErrors);
     return isValid;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccessMessage('');
     
     if (validateForm()) {
-      // API call would go here
-      console.log('Creating new user:', formData);
-      setSuccessMessage(`Successfully created user: ${formData.name}`);
-      
-      // Reset form
-      setFormData({
-        name: '',
-        upMail: '',
-        studentNumber: '',
-        degreeProgram: '',
-        role: 'tutee',
-        subjects: []
-      });
+      try {
+        setLoading(true);
+        const payload = {
+          name: formData.name,
+          email: formData.upMail.toLowerCase(),
+          student_number: formData.studentNumber,
+          degree_program: formData.degreeProgram,
+          role: formData.role
+        };
+
+        await api.post('/users', payload);
+        
+        setSuccessMessage(`Successfully created user: ${formData.name}`);
+        
+        // Reset form
+        setFormData({
+          name: '',
+          upMail: '',
+          studentNumber: '',
+          degreeProgram: '',
+          role: 'tutee',
+          subjects: []
+        });
+      } catch (error) {
+        console.error("Error creating user:", error);
+        const backendMessage = error.response?.data?.message || 'Failed to create user.';
+        setErrors({ submit: backendMessage });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -211,8 +210,14 @@ export default function AdminNewLRCUser() {
               </div>
             )}
 
-            <button type="submit" className="admin-form-submit">
-              Create User
+            {errors.submit && (
+              <div style={{ color: '#dc3545', textAlign: 'center', marginBottom: '15px', fontWeight: 'bold' }}>
+                {errors.submit}
+              </div>
+            )}
+
+            <button type="submit" className="admin-form-submit" disabled={loading}>
+              {loading ? 'Creating...' : 'Create User'}
             </button>
           </form>
         </div>

@@ -27,12 +27,7 @@ import Study from './pages/Study';
 import NotFound from './pages/NotFound';
 
 function App() { 
-  // If api.js is fixed, this should print "Success" or a 401 error (which is fine)
-  useEffect(() => {
-    getUserProfile()
-      .then(res => console.log("Success:", res.data))
-      .catch(err => console.log("Caught Check:", err));
-  }, []);
+  // Removed debug useEffect to prevent "no token" errors on mount when not logged in.
 
   return (
     <BrowserRouter>

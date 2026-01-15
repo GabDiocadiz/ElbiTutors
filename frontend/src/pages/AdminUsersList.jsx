@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminEditUserModal from '../components/EditUser';
+import api from '../services/api';
 import '../styles/Admin.css';
 
 export default function AdminUsersList() {
@@ -17,21 +18,24 @@ export default function AdminUsersList() {
 
   const itemsPerPage = 10;
 
-  // Mock Database of Users
-  // Roles restricted to 'tutee' or 'tutor' (displayed as LRC)
-  const [allUsers, setAllUsers] = useState([
-    { id: 1, name: 'Dela Cruz, Juan', email: 'jdelacruz@up.edu.ph', role: 'tutee', studentNumber: '2023-12345', degreeProgram: 'BS Computer Science' },
-    { id: 2, name: 'Santos, Maria Clara', email: 'msantos@up.edu.ph', role: 'tutor', studentNumber: '2022-12345', degreeProgram: 'BS Applied Mathematics' },
-    { id: 3, name: 'Reyes, Jose', email: 'jreyes@up.edu.ph', role: 'tutee', studentNumber: '2023-10101', degreeProgram: 'BS Biology' },
-    { id: 4, name: 'Garcia, Miguel', email: 'mgarcia@up.edu.ph', role: 'tutor', studentNumber: '2023-00001', degreeProgram: 'BS Statistics' },
-    { id: 5, name: 'Bautista, Ana', email: 'abautista@up.edu.ph', role: 'tutor', studentNumber: '2021-54321', degreeProgram: 'BA Communication Arts' },
-    { id: 6, name: 'Ocampo, Luis', email: 'locampo@up.edu.ph', role: 'tutee', studentNumber: '2020-98765', degreeProgram: 'BS Civil Engineering' },
-    { id: 7, name: 'Mendoza, Sarah', email: 'smendoza@up.edu.ph', role: 'tutee', studentNumber: '2023-11111', degreeProgram: 'BS Economics' },
-    { id: 8, name: 'Lim, Michael', email: 'mlim@up.edu.ph', role: 'tutor', studentNumber: '2019-22222', degreeProgram: 'BS Forestry' },
-    { id: 9, name: 'Tan, Anna', email: 'atan@up.edu.ph', role: 'tutee', studentNumber: '2022-33333', degreeProgram: 'BS Chemistry' },
-    { id: 10, name: 'Aquino, Tomas', email: 'taquino@up.edu.ph', role: 'tutor', studentNumber: '2021-44444', degreeProgram: 'BA Philosophy' },
-    { id: 11, name: 'Gonzales, Jerry', email: 'jgonzales@up.edu.ph', role: 'tutee', studentNumber: '2023-55555', degreeProgram: 'BS Agribusiness' },
-  ]);
+  // State for Users and UI
+  const [allUsers, setAllUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch users from API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await api.get('/users');
+        setAllUsers(response.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -53,10 +57,10 @@ export default function AdminUsersList() {
       
       const lowerSearch = searchTerm.toLowerCase();
       const matchesSearch = 
-        user.name.toLowerCase().includes(lowerSearch) ||
-        user.email.toLowerCase().includes(lowerSearch) ||
-        user.studentNumber.includes(lowerSearch) ||
-        user.degreeProgram.toLowerCase().includes(lowerSearch);
+        user.name?.toLowerCase().includes(lowerSearch) ||
+        user.email?.toLowerCase().includes(lowerSearch) ||
+        user.student_number?.includes(lowerSearch) ||
+        user.degree_program?.toLowerCase().includes(lowerSearch);
 
       return roleFilter && matchesSearch;
     });
@@ -91,15 +95,36 @@ export default function AdminUsersList() {
     setOpenActionMenuId(null);
   };
 
-  const handleSaveUser = (updatedUser) => {
-    setAllUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-    setIsEditModalOpen(false);
-    setSelectedUser(null);
+  const handleSaveUser = async (updatedUser) => {
+    try {
+      // API call to update user role/status (assuming role update for now)
+      await api.put(`/users/${updatedUser._id}/role`, { role: updatedUser.role });
+      
+      // Refresh list
+      const response = await api.get('/users');
+      setAllUsers(response.data);
+      
+      setIsEditModalOpen(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      alert("Failed to update user.");
+    }
   };
 
-  const handleDelete = (user) => {
-    if(window.confirm(`Are you sure you want to delete ${user.name}?`)) {
-       setAllUsers(prev => prev.filter(u => u.id !== user.id));
+  const handleDelete = async (user) => {
+    if(window.confirm(`Are you sure you want to delete ${user.name}? This will deactivate their account.`)) {
+      try {
+        // We use status update to 'inactive' as a soft delete
+        await api.put(`/users/${user._id}/status`, { status: 'inactive' });
+        
+        // Refresh list
+        const response = await api.get('/users');
+        setAllUsers(response.data);
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        alert("Failed to delete user.");
+      }
     }
     setOpenActionMenuId(null);
   };
@@ -179,20 +204,20 @@ export default function AdminUsersList() {
               {currentUsers.length > 0 ? (
                 currentUsers.map(user => (
                   <tr 
-                    key={user.id} 
-                    className={`admin-table-row ${selectedRows.includes(user.id) ? 'selected' : ''}`}
+                    key={user._id} 
+                    className={`admin-table-row ${selectedRows.includes(user._id) ? 'selected' : ''}`}
                   >
                     <td className="admin-table-checkbox">
                       <div 
-                        className={`checkbox ${selectedRows.includes(user.id) ? 'checked' : ''}`}
-                        onClick={() => handleRowSelect(user.id)}
+                        className={`checkbox ${selectedRows.includes(user._id) ? 'checked' : ''}`}
+                        onClick={() => handleRowSelect(user._id)}
                       ></div>
                     </td>
                     <td>{displayRole(user.role)}</td>
-                    <td>{user.studentNumber}</td>
+                    <td>{user.student_number || 'N/A'}</td>
                     <td>{user.email}</td>
                     <td>{user.name}</td>
-                    <td>{user.degreeProgram}</td>
+                    <td>{user.degree_program || 'N/A'}</td>
                     <td className="admin-action-cell">
                       <button 
                         className="admin-action-icon"

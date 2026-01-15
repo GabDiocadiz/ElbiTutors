@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 import Footer from '../components/Footer';
 import SubjectDropdown from '../components/SubjectDropdown';
 import '../styles/design.css';
@@ -8,31 +9,44 @@ const Study = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [tutors, setTutors] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock Data for Tutors
-  const tutors = [
-    { id: 101, name: "Joanne Maryz Cabatingan", courses: "CMSC 12, CMSC 21, MATH 27", type: "recommended" },
-    { id: 102, name: "Gavin", courses: "CHEM 18, BIO 11", type: "recommended" },
-    { id: 103, name: "Angeline Cubelo", courses: "PHYS 71, MATH 28", type: "recommended" },
-    { id: 104, name: "Lance", courses: "CMSC 123, STAT 1", type: "recommended" },
-    { id: 105, name: "Eitan", courses: "ENG 10, COMM 10", type: "new" },
-    { id: 106, name: "Kevin", courses: "ARTS 1, HUM 3", type: "new" },
-  ];
+  // Fetch Tutors from API
+  useEffect(() => {
+    const fetchTutors = async () => {
+      try {
+        setLoading(true);
+        // GET /api/tutors returns certified tutors
+        const response = await api.get('/tutors');
+        setTutors(response.data);
+      } catch (err) {
+        console.error("Failed to fetch tutors", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTutors();
+  }, []);
 
   // Filtering Logic
   const filteredTutors = tutors.filter(tutor => {
-    const matchesName = tutor.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const tutorName = tutor.userId?.name || "";
+    const courses = tutor.subjectsOffered?.join(", ") || "";
+    
+    const matchesName = tutorName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = selectedSubjects.length === 0 ||
-      selectedSubjects.some(subject => tutor.courses.includes(subject));
+      selectedSubjects.some(subject => courses.includes(subject));
     return matchesName && matchesSubject;
   });
 
-  const recommendedTutors = filteredTutors.filter(t => t.type === 'recommended');
-  const newTutors = filteredTutors.filter(t => t.type === 'new');
+  // For now, we split by those with higher ratings for "Recommended"
+  // or just show all in one if preferred.
+  const recommendedTutors = filteredTutors.filter(t => (t.rating || 0) >= 4.5);
+  const newTutors = filteredTutors.filter(t => (t.rating || 0) < 4.5);
 
   const handleVisitTutor = (tutorId) => {
-  // Update to match the route defined in TUTOR_PROFILE_COMPONENTS.md
-  navigate(`/tutor/${tutorId}/view`); 
+    navigate(`/tutor/${tutorId}/view`); 
   };
 
   return (
@@ -64,9 +78,11 @@ const Study = () => {
         <section className="tutor-section">
           <h2 className="section-header-maroon">Recommended</h2>
           <div className="tutor-grid">
-            {recommendedTutors.length > 0 ? (
+            {loading ? (
+              <p className="no-results">Loading tutors...</p>
+            ) : recommendedTutors.length > 0 ? (
               recommendedTutors.map(tutor => (
-                <TutorCard key={tutor.id} tutor={tutor} onVisit={handleVisitTutor} />
+                <TutorCard key={tutor._id} tutor={tutor} onVisit={handleVisitTutor} />
               ))
             ) : (
               <p className="no-results">No recommended tutors found.</p>
@@ -76,14 +92,16 @@ const Study = () => {
 
         {/* NEW TUTORS SECTION */}
         <section className="tutor-section">
-          <h2 className="section-header-maroon">New Tutors</h2>
+          <h2 className="section-header-maroon">Other Tutors</h2>
           <div className="tutor-grid">
-            {newTutors.length > 0 ? (
+            {loading ? (
+              <p className="no-results">Loading tutors...</p>
+            ) : newTutors.length > 0 ? (
               newTutors.map(tutor => (
-                <TutorCard key={tutor.id} tutor={tutor} onVisit={handleVisitTutor} />
+                <TutorCard key={tutor._id} tutor={tutor} onVisit={handleVisitTutor} />
               ))
             ) : (
-              <p className="no-results">No new tutors found.</p>
+              <p className="no-results">No other tutors found.</p>
             )}
           </div>
         </section>
@@ -97,10 +115,10 @@ const Study = () => {
 // Sub-component for the card to keep code clean
 const TutorCard = ({ tutor, onVisit }) => (
   <div className="tutor-card">
-    <div className="card-top-accent"></div> {/* Optional visual touch */}
-    <h3 className="tutor-name">{tutor.name}</h3>
-    <p className="tutor-courses">{tutor.courses}</p>
-    <button className="visit-btn" onClick={() => onVisit(tutor.id)}>
+    <div className="card-top-accent"></div> 
+    <h3 className="tutor-name">{tutor.userId?.name || "Anonymous"}</h3>
+    <p className="tutor-courses">{tutor.subjectsOffered?.join(", ") || "No courses listed"}</p>
+    <button className="visit-btn" onClick={() => onVisit(tutor._id)}>
       Visit Tutor
     </button>
   </div>

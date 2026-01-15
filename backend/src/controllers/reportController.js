@@ -99,3 +99,48 @@ export const resolveReport = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc    Dismiss a report (Invalid/No action)
+ * @route   PUT /api/reports/:id/dismiss
+ * @access  Private (Admin)
+ */
+export const dismissReport = async (req, res, next) => {
+  try {
+    const report = await Report.findById(req.params.id);
+
+    if (!report) {
+      throw new ApiError("Report not found", 404);
+    }
+
+    report.status = "dismissed";
+    await report.save();
+
+    res.json({ message: "Report dismissed.", report });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Update report status (Generic)
+ * @route   PUT /api/reports/:id/status
+ * @access  Private (Admin)
+ */
+export const updateReportStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const report = await Report.findById(req.params.id);
+
+    if (!report) {
+      throw new ApiError("Report not found", 404);
+    }
+
+    report.status = status;
+    await report.save();
+
+    res.json({ message: `Report status updated to ${status}.`, report });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -8,8 +8,10 @@ import BookingDetails from '../components/BookingDetails';
 import Calendar from '../components/Calendar';
 
 // Assets
+// Assets
 import lrcBadge from '../assets/logo_lrc.png';
 import userPlaceholder from '../assets/user_placeholder.png';
+import api, { getUserProfile } from '../services/api';
 
 // Styling
 import '../styles/design.css';
@@ -38,35 +40,22 @@ const Profile = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json' 
-        };
-
-        // 1. Fetch User Info (Role, Program, Classification) from Database
-        const userRes = await fetch('/api/users/me', { headers });
-        if (!userRes.ok) throw new Error('Failed to fetch user');
-        const userData = await userRes.json();
+        // 1. Fetch User Info (Role, Program, Classification) from Database using axios service
+        const userRes = await getUserProfile();
+        const userData = userRes.data;
         setDbUser(userData);
 
         // 2. Fetch Sessions/Bookings
-        const sessionRes = await fetch('/api/sessions/my-sessions', { headers });
-        if (sessionRes.ok) {
-          const sessionData = await sessionRes.json();
-          setBookings(sessionData);
-        }
+        const sessionRes = await api.get('/sessions/my-sessions');
+        setBookings(sessionRes.data);
 
         // 3. Fetch Tutor Details if role is 'tutor'
         if (userData.role === 'tutor') {
-          const tutorRes = await fetch('/api/tutors/profile', { headers });
-          if (tutorRes.ok) {
-            const tutorInfo = await tutorRes.json();
-            setTutorData(tutorInfo);
-          }
+          const tutorRes = await api.get('/tutors/profile');
+          setTutorData(tutorRes.data);
         }
       } catch (err) {
-        console.error("Profile Data Sync Error:", err);
+        console.error("Profile Data Sync Error:", err.response?.data || err.message);
       } finally {
         setLoading(false);
       }

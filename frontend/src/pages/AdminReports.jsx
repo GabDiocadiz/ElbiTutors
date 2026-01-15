@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 import '../styles/Admin.css';
 
 export default function AdminReports() {
@@ -13,16 +14,24 @@ export default function AdminReports() {
   // State for Dropdown Action Menu
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
 
-  // Mock Database of Reports
-  const [allReports, setAllReports] = useState([
-    { id: 1, reporter: 'Dela Cruz, Juan', reportedUser: 'Reyes, Jose', reason: 'Inappropriate behavior during session', date: '2023-10-25', status: 'Pending' },
-    { id: 2, reporter: 'Santos, Maria', reportedUser: 'Lim, Michael', reason: 'No-show for scheduled tutoring', date: '2023-10-24', status: 'Resolved' },
-    { id: 3, reporter: 'Gonzales, Jerry', reportedUser: 'Aquino, Tomas', reason: 'Offensive language in chat', date: '2023-10-23', status: 'Pending' },
-    { id: 4, reporter: 'Ocampo, Luis', reportedUser: 'Tan, Anna', reason: 'Spamming messages', date: '2023-10-22', status: 'Dismissed' },
-    { id: 5, reporter: 'Bautista, Ana', reportedUser: 'Garcia, Miguel', reason: 'Did not pay attention', date: '2023-10-20', status: 'Resolved' },
-    { id: 6, reporter: 'Mercado, Bea', reportedUser: 'Torres, Mark', reason: 'Late arrival consistently', date: '2023-10-18', status: 'Pending' },
-    { id: 7, reporter: 'Cruz, John', reportedUser: 'Diaz, Rico', reason: 'Rude remarks', date: '2023-10-15', status: 'Resolved' },
-  ]);
+  // Data State
+  const [allReports, setAllReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch reports from API
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await api.get('/reports');
+        setAllReports(response.data);
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -41,9 +50,9 @@ export default function AdminReports() {
       const matchesFilter = selectedFilter === 'all' || report.status.toLowerCase() === selectedFilter.toLowerCase();
       const lowerSearch = searchTerm.toLowerCase();
       const matchesSearch = 
-        report.reporter.toLowerCase().includes(lowerSearch) ||
-        report.reportedUser.toLowerCase().includes(lowerSearch) ||
-        report.reason.toLowerCase().includes(lowerSearch);
+        report.reporterId?.name?.toLowerCase().includes(lowerSearch) ||
+        report.reportedId?.name?.toLowerCase().includes(lowerSearch) ||
+        report.description?.toLowerCase().includes(lowerSearch);
 
       return matchesFilter && matchesSearch;
     });
@@ -73,10 +82,25 @@ export default function AdminReports() {
     setOpenActionMenuId(openActionMenuId === id ? null : id);
   };
 
-  const handleStatusChange = (id, newStatus) => {
-    setAllReports(prev => prev.map(report => 
-      report.id === id ? { ...report, status: newStatus } : report
-    ));
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      if (newStatus === 'Resolved') {
+        const issueWarning = window.confirm("Issue a warning to the reported user?");
+        await api.put(`/reports/${id}/resolve`, { issueWarning });
+      } else if (newStatus === 'Dismissed') {
+        await api.put(`/reports/${id}/dismiss`);
+      } else if (newStatus === 'Pending') {
+        // Reopen report (Generic status update)
+        await api.put(`/reports/${id}/status`, { status: 'pending' });
+      }
+      
+      // Refresh data
+      const response = await api.get('/reports');
+      setAllReports(response.data);
+    } catch (error) {
+      console.error("Error updating report status:", error);
+      alert("Failed to update report status.");
+    }
     setOpenActionMenuId(null);
   };
 
@@ -161,21 +185,21 @@ export default function AdminReports() {
               {currentReports.length > 0 ? (
                 currentReports.map(report => (
                   <tr 
-                    key={report.id} 
-                    className={`admin-table-row ${selectedRows.includes(report.id) ? 'selected' : ''}`}
+                    key={report._id} 
+                    className={`admin-table-row ${selectedRows.includes(report._id) ? 'selected' : ''}`}
                   >
                     <td className="admin-table-checkbox">
                       <div 
-                        className={`checkbox ${selectedRows.includes(report.id) ? 'checked' : ''}`}
-                        onClick={() => handleRowSelect(report.id)}
+                        className={`checkbox ${selectedRows.includes(report._id) ? 'checked' : ''}`}
+                        onClick={() => handleRowSelect(report._id)}
                       ></div>
                     </td>
-                    <td>{report.reporter}</td>
-                    <td>{report.reportedUser}</td>
-                    <td>{report.reason}</td>
-                    <td>{report.date}</td>
+                    <td>{report.reporterId?.name || 'Unknown'}</td>
+                    <td>{report.reportedId?.name || 'Unknown'}</td>
+                    <td>{report.description}</td>
+                    <td>{new Date(report.createdAt).toLocaleDateString()}</td>
                     <td>
-                      <span className={`status-pill ${report.status === 'Resolved' ? 'status-resolved' : report.status === 'Pending' ? 'status-pending' : 'status-dismissed'}`}>
+                      <span className={`status-pill ${report.status === 'resolved' ? 'status-resolved' : report.status === 'pending' ? 'status-pending' : 'status-dismissed'}`}>
                         {report.status}
                       </span>
                     </td>

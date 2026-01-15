@@ -1,7 +1,34 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../services/api';
 import '../styles/Admin.css';
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    tutorsCount: 0,
+    unresolvedReports: 0,
+    loading: true
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch users to count tutors
+        const usersRes = await api.get('/users');
+        const tutorsCount = usersRes.data.filter(u => u.role === 'tutor').length;
+
+        // Fetch reports to count pending
+        const reportsRes = await api.get('/reports?status=pending');
+        const unresolvedReports = reportsRes.data.length;
+
+        setStats({ tutorsCount, unresolvedReports, loading: false });
+      } catch (error) {
+        console.error("Error fetching admin stats:", error);
+        setStats(prev => ({ ...prev, loading: false }));
+      }
+    };
+    fetchStats();
+  }, []);
   return (
     <div className="admin-page">
       <div className="admin-container">
@@ -22,12 +49,12 @@ export default function AdminDashboard() {
 
           <div className="admin-stats">
             <div className="admin-stat-card">
-              <div className="stat-value">45</div>
+              <div className="stat-value">{stats.loading ? '...' : stats.tutorsCount}</div>
               <div className="stat-label">LRC Tutors</div>
             </div>
 
             <div className="admin-unresolved">
-              Unresolved: <strong>8 reports</strong>
+              Unresolved: <strong>{stats.loading ? '...' : stats.unresolvedReports} reports</strong>
             </div>
           </div>
         </div>
