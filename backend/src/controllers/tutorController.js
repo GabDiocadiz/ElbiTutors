@@ -188,3 +188,32 @@ export const approveTutorChanges = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc    Set Availability
+ * @route   PUT /api/tutors/availability
+ * @access  Private (Tutor Only)
+ */
+export const setAvailability = async (req, res, next) => {
+  const { availability } = req.body; 
+
+  try {
+    const tutor = await Tutor.findOne({ userId: req.user._id });
+
+    if (!tutor) {
+      throw new ApiError("Tutor profile not found", 404);
+    }
+
+
+    if (!Array.isArray(availability)) {
+      throw new ApiError("Availability must be an array", 400);
+    }
+
+    tutor.availability = availability;
+    await tutor.save();
+
+    res.json(tutor);
+  } catch (error) {
+    next(error);
+  }
+};

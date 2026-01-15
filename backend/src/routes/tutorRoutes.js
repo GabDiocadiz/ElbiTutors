@@ -4,7 +4,8 @@ import {
   getTutorById, 
   updateTutorProfile,
   getPendingTutors,
-  approveTutorChanges
+  approveTutorChanges,
+  setAvailability
 } from "../controllers/tutorController.js";
 
 // Middleware
@@ -24,6 +25,7 @@ import { adminOnly } from "../middlewares/authMiddleware.js";
 router.get("/pending", protect, adminOnly, getPendingTutors);
 
 router.put("/profile", protect, tutorOnly, updateTutorProfile);
+router.put("/availability", protect, tutorOnly, setAvailability);
 
 /**
  * @route   GET /api/tutors/:id

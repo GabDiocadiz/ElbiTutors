@@ -11,6 +11,11 @@ const tutorSchema = new mongoose.Schema({
   specializationCodes: [String],
   rating: { type: Number, default: 0 },
   ratingCount: { type: Number, default: 0 },
+  availability: [{
+    day: { type: String, enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
+    startTime: { type: String }, // e.g., "10:00"
+    endTime: { type: String }    // e.g., "12:00"
+  }],
   isProfileVerified: { type: Boolean, default: true }, // Default true for seeded/initial
   pendingChanges: {
     bio: String,

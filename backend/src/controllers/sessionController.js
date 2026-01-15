@@ -216,3 +216,86 @@ export const getAllSessions = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @desc    Cancel a session (Tutee or Tutor)
+ * @route   PUT /api/sessions/:id/cancel
+ * @access  Private
+ */
+export const cancelSession = async (req, res, next) => {
+  try {
+    const session = await Session.findById(req.params.id)
+      .populate("tutorId", "email name")
+      .populate("createdByTuteeId", "email name");
+
+    if (!session) throw new ApiError("Session not found", 404);
+
+    const isCreator = session.createdByTuteeId?._id.toString() === req.user._id.toString();
+    const isTutor = session.tutorId?._id.toString() === req.user._id.toString(); // Tutor's User ID matches
+
+    if (!isCreator && !isTutor) {
+      throw new ApiError("Not authorized to cancel this session", 403);
+    }
+
+    if (session.status === "cancelled" || session.status === "done") {
+      throw new ApiError("Cannot cancel a completed or already cancelled session", 400);
+    }
+
+    session.status = "cancelled";
+    await session.save();
+
+    // Notify the other party
+    const subject = "Session Cancelled - ElbiTutors";
+    if (isCreator) {
+        
+        if(session.tutorId?.email) {
+             await sendEmail(session.tutorId.email, subject, `The session for "${session.topic}" has been cancelled by the student.`);
+        }
+    } else {
+        // Tutor cancelled -> Notify Tutee
+        if(session.createdByTuteeId?.email) {
+            await sendEmail(session.createdByTuteeId.email, subject, `The session for "${session.topic}" has been cancelled by the tutor.`);
+        }
+    }
+
+    res.json({ message: "Session cancelled successfully", session });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Tutor creates a Group Session Slot
+ * @route   POST /api/sessions/group
+ * @access  Private (Tutor Only)
+ */
+export const createGroupSession = async (req, res, next) => {
+  try {
+    const { topic, startTime, endTime, maxParticipants } = req.body;
+
+    // Validation
+    if (!topic || !startTime || !endTime) {
+      throw new ApiError("Topic, Start Time, and End Time are required", 400);
+    }
+
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (start >= end) throw new ApiError("Start time must be before end time", 400);
+    
+    const session = await Session.create({
+      tutorId: req.user._id,
+      topic,
+      startTime: start,
+      endTime: end,
+      isGroup: true,
+      maxParticipants: maxParticipants || 5,
+      status: "approved", 
+      participants: [] 
+    });
+
+    res.status(201).json(session);
+  } catch (error) {
+    next(error);
+  }
+};
