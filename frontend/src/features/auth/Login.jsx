@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGoogleLogin } from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google"; // Used this
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 import toast from "react-hot-toast";
@@ -12,22 +12,25 @@ export default function Login() {
   const { setAuthSession } = useAuth();
   const navigate = useNavigate();
 
-  const handleGoogleSuccess = async (codeResponse) => {
-    const code = codeResponse?.code;
-
-    if (!code) {
-      toast.error("Google login failed: No authorization code returned.");
-      setLoading(false);
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) { // This is what you were expecting
+      toast.error("Google login failed: missing credential.");
       return;
     }
 
     try {
-      const response = await api.post("/auth/google", { code });
+      setLoading(true);
 
+      const response = await api.post("/auth/google", {
+        credential: credentialResponse.credential,
+      });
+
+      // Existing user → log in
       if (response?.data?.token && response?.data?.user) {
         const { token, user } = response.data;
         setAuthSession(token, user);
         
+        // Redirect based on role
         if (user.role === 'admin' || user.isLRCAdmin) {
           navigate("/admin/dashboard");
         } else {
@@ -35,38 +38,41 @@ export default function Login() {
         }
         
         toast.success(`Welcome back, ${user.name}!`);
-      } else {
-        throw new Error("Unexpected server response during login.");
+        return;
       }
+
+      throw new Error("Unexpected server response");
 
     } catch (err) {
       console.error("Google login error:", err.response?.data || err.message);
 
+      // NEW USER: 404 + googleData
       const googleData = err.response?.data?.googleData;
       if (googleData) {
-        const dataToSave = { ...googleData };
+        // IMPORTANT: Attach the credential (ID Token) to the data object
+        // This is required for the final registration step in TermsAndConditions
+        const dataToSave = { 
+          ...googleData, 
+          idToken: credentialResponse.credential 
+        };
+        
         localStorage.setItem("googleData", JSON.stringify(dataToSave));
         navigate("/basic-info", { state: { googleData: dataToSave, role: "tutee" } });
-      } else {
-        toast.error(err.response?.data?.message || "An error occurred during login.");
+        return;
       }
+
+      toast.error(
+        err.response?.data?.message || "Google login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const login = useGoogleLogin({
-    onSuccess: handleGoogleSuccess,
-    onError: () => {
-      toast.error("Google login popup failed. Please try again.");
-      setLoading(false);
-    },
-    flow: 'auth-code',
-  });
-
   const handleCustomButtonClick = () => {
-    setLoading(true);
-    login();
+    const googleButton = document.querySelector('div[role="button"]');
+    if (googleButton) googleButton.click();
+    else alert("Google login button not ready. Please try again.");
   };
 
   return (
@@ -87,9 +93,18 @@ export default function Login() {
             {loading ? "Connecting..." : <>Login with <strong>UP Mail</strong></>}
           </button>
 
+          {/* RESTORED BUTTON */}
           <button onClick={() => navigate("/about")} className="login-btn-gray">
             What is ELBI Tutors?
           </button>
+
+          <div style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => alert("Google login failed")}
+              useOneTap={false}
+            />
+          </div>
         </div>
       </div>
     </div>
