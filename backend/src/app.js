@@ -13,6 +13,7 @@ import feedbackRoutes from "./routes/feedbackRoutes.js";
 import auditLogRoutes from "./routes/auditLogRoutes.js";
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(cors({
   origin: 'https://elbitutors.vercel.app', // Allow your Frontend
   credentials: true,               // Allow cookies/tokens
