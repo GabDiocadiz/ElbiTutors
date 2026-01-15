@@ -195,17 +195,13 @@ const Profile = () => {
 
         {/* REPORT LINK - Tutee Only */}
         {!isTutor && (
-          <div className="report-link-section" style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <p>
-              <span className="report-text-gray" style={{ color: '#959595', fontSize: '15px', fontWeight: '700' }}>If you're experiencing a problem, click </span>
-              <button 
-                className="report-link" 
-                style={{ color: '#800000', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: '15px', fontWeight: '700', padding: 0 }}
-                onClick={() => setShowReport(true)}
-              >
+          <div className="report-container">
+            <p className="report-text">
+              If you're experiencing a problem, click{" "}
+              <button onClick={() => setShowReport(true)} className="report-link">
                 here
               </button>
-              <span className="report-text-gray" style={{ color: '#959595', fontSize: '15px', fontWeight: '700' }}> to report.</span>
+              {" "}to report.
             </p>
           </div>
         )}

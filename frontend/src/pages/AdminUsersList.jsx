@@ -230,7 +230,7 @@ export default function AdminUsersList() {
                       </button>
                       
                       {openActionMenuId === user._id && (
-                        <div className="admin-action-menu">
+                        <div className="admin-action-menu active">
                           <button className="admin-action-item" onClick={() => handleEdit(user)}>
                             Edit
                           </button>

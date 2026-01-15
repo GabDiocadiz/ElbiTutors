@@ -411,23 +411,27 @@
   color: var(--uplb-maroon);
 }
 
+/* Update your existing .admin-action-menu */
 .admin-action-menu {
   position: absolute;
-  top: 50px;
-  right: 10px;
-  left: 50%;
-  transform: translateX(-80%); /* Adjusted for center alignment context */
-  z-index: 100;
-  display: flex;
+  top: 40px; /* Adjusted to sit better below the icon */
+  right: 0;
+  z-index: 1000;
+  display: none; /* HIDE BY DEFAULT */
   flex-direction: column;
   min-width: 160px;
   background: #FFF;
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.1);
   border-radius: 12px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.15);
   overflow: hidden;
-  animation: fadeIn 0.2s ease-out;
   text-align: left;
+}
+
+/* NEW: This class will be toggled by JavaScript */
+.admin-action-menu.active {
+  display: flex;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .admin-action-item {

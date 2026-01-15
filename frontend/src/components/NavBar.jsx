@@ -20,7 +20,8 @@ export default function Navbar() {
     return location.pathname === path;
   };
 
-  const isAdminPage = location.pathname.startsWith('/admin');
+  // Determine if the logged-in user has admin privileges
+  const isUserAdmin = user?.role === 'admin' || user?.isLRCAdmin;
 
   return (
     <nav className="navbar">
@@ -29,11 +30,14 @@ export default function Navbar() {
           <img src={logoDarkMode} alt="ELBI Tutors Logo" className="logo-image" />
         </div>
 
-        <div className="navbar-menu">
-          <Link to="/dashboard" className={isActive('/dashboard') ? 'nav-button active' : 'nav-button'}>Home</Link>
-          <Link to="/study" className={isActive('/study') ? 'nav-button active' : 'nav-button'}>Study</Link>
-          <Link to="/about" className={isActive('/about') ? 'nav-button active' : 'nav-button'}>About</Link>
-        </div>
+        {/* 1. Only show navigation links if the user is NOT an admin */}
+        {!isUserAdmin && (
+          <div className="navbar-menu">
+            <Link to="/dashboard" className={isActive('/dashboard') ? 'nav-button active' : 'nav-button'}>Home</Link>
+            <Link to="/study" className={isActive('/study') ? 'nav-button active' : 'nav-button'}>Study</Link>
+            <Link to="/about" className={isActive('/about') ? 'nav-button active' : 'nav-button'}>About</Link>
+          </div>
+        )}
 
         {user && (
           <div
@@ -41,27 +45,34 @@ export default function Navbar() {
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}
           >
-            {/* ✅ CLICKING THIS GOES TO /profile */}
-            <Link
-              to="/profile"
-              className="navbar-user"
-            >
-              <span className="user-email">
-                {isAdminPage ? 'ADMIN' : user?.email}
-              </span>
-
-              <div className="user-avatar">
-                <img
-                  src={user?.picture || userPlaceholder}
-                  alt="User Avatar"
-                  className="avatar-image"
-                />
+            {/* 2 & 3. If Admin: Render non-clickable DIV. If User: Render clickable LINK */}
+            {isUserAdmin ? (
+              <div className="navbar-user" style={{ cursor: 'default' }}>
+                <span className="user-email">ADMIN</span>
+                <div className="user-avatar">
+                  <img
+                    src={user?.picture || userPlaceholder}
+                    alt="Admin Avatar"
+                    className="avatar-image"
+                  />
+                </div>
               </div>
-            </Link>
+            ) : (
+              <Link to="/profile" className="navbar-user">
+                <span className="user-email">{user?.email}</span>
+                <div className="user-avatar">
+                  <img
+                    src={user?.picture || userPlaceholder}
+                    alt="User Avatar"
+                    className="avatar-image"
+                  />
+                </div>
+              </Link>
+            )}
 
-            {/* Dropdown */}
+            {/* 4. Keep Logout Dropdown */}
             <div className={`navbar-dropdown ${open ? 'open' : ''}`}>
-              {(user?.role === 'admin' || user?.isLRCAdmin) && (
+              {isUserAdmin && (
                 <Link to="/admin/dashboard" className="dropdown-item">
                   🛠 Admin Dashboard
                 </Link>
