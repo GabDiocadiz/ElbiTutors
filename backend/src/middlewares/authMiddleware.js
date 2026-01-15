@@ -25,6 +25,18 @@ export const protect = async (req, res, next) => {
                 return next(error);
             }
 
+            // SRS Security Check: Enforce Suspension
+            if (req.user.status === 'suspended') {
+                const error = new Error('Your account has been suspended due to policy violations.');
+                error.statusCode = 403;
+                return next(error);
+            }
+            if (req.user.status === 'inactive') {
+                const error = new Error('Account is inactive.');
+                error.statusCode = 403;
+                return next(error);
+            }
+
             return next();
         } catch (error) {
             console.error('JWT Verification Error:', error.message);
@@ -67,4 +79,26 @@ export const tutorOnly = (req, res, next) => {
         error.statusCode = 403;
         next(error);
     }
+};
+
+/**
+ * @desc    Factory for granular permission checks (SRS 4.2.3 REQ-5)
+ * @param   {string} permission - The key in user.permissions (e.g., 'verifyTutors')
+ */
+export const hasPermission = (permission) => {
+    return (req, res, next) => {
+        // Super admins (developers) or full admins override granular checks? 
+        // For now, let's assume 'role: admin' implies ALL permissions, 
+        // OR we strictly check the flag. Let's start with strict check + super admin override.
+        const isSuperAdmin = req.user.role === 'admin'; 
+        const hasFlag = req.user.permissions && req.user.permissions[permission] === true;
+        
+        if (isSuperAdmin || hasFlag) {
+            next();
+        } else {
+            const error = new Error(`Not authorized: Missing '${permission}' permission.`);
+            error.statusCode = 403;
+            next(error);
+        }
+    };
 };

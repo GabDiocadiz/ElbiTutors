@@ -97,8 +97,11 @@ export default function AdminUsersList() {
 
   const handleSaveUser = async (updatedUser) => {
     try {
-      // API call to update user role/status (assuming role update for now)
-      await api.put(`/users/${updatedUser._id}/role`, { role: updatedUser.role });
+      // API call to update user role/status
+      await api.put(`/users/${updatedUser._id}/role`, { 
+        role: updatedUser.role,
+        isLRCAdmin: updatedUser.isLRCAdmin 
+      });
       
       // Refresh list
       const response = await api.get('/users');
@@ -108,7 +111,7 @@ export default function AdminUsersList() {
       setSelectedUser(null);
     } catch (error) {
       console.error("Error updating user:", error);
-      alert("Failed to update user.");
+      alert(error.response?.data?.message || "Failed to update user.");
     }
   };
 
@@ -221,12 +224,12 @@ export default function AdminUsersList() {
                     <td className="admin-action-cell">
                       <button 
                         className="admin-action-icon"
-                        onClick={(e) => toggleActionMenu(user.id, e)}
+                        onClick={(e) => toggleActionMenu(user._id, e)}
                       >
                         ⋮
                       </button>
                       
-                      {openActionMenuId === user.id && (
+                      {openActionMenuId === user._id && (
                         <div className="admin-action-menu">
                           <button className="admin-action-item" onClick={() => handleEdit(user)}>
                             Edit

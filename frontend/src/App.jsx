@@ -21,6 +21,9 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminUsersList from './pages/AdminUsersList';
 import AdminNewLRCUser from './pages/AdminNewLRCUser';
 import AdminReports from './pages/AdminReports';
+import AdminBookings from './pages/AdminBookings';
+import AdminTutorApprovals from './pages/AdminTutorApprovals';
+import AdminAuditLogs from './pages/AdminAuditLogs';
 import TutorProfileView from './pages/TutorProfileView';
 import Profile from './pages/Profile';
 import Study from './pages/Study';
@@ -60,6 +63,9 @@ function App() {
             <Route path="/admin/users" element={<><SimpleNavbar /><AdminUsersList /></>} />
             <Route path="/admin/new-lrc-user" element={<><SimpleNavbar /><AdminNewLRCUser /></>} />
             <Route path="/admin/reports" element={<><SimpleNavbar /><AdminReports /></>} /> 
+            <Route path="/admin/bookings" element={<><SimpleNavbar /><AdminBookings /></>} />
+            <Route path="/admin/tutor-approvals" element={<><SimpleNavbar /><AdminTutorApprovals /></>} />
+            <Route path="/admin/audit-logs" element={<><SimpleNavbar /><AdminAuditLogs /></>} />
         </Route>
 
         {/* 404 Page */}

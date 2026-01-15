@@ -1,82 +1,75 @@
-import Feedback from '../models/Feedback.js';
-import Session from '../models/Session.js';
-import Tutor from '../models/Tutor.js';
+import Feedback from "../models/Feedback.js";
+import Tutor from "../models/Tutor.js";
+import Session from "../models/Session.js";
+import ApiError from "../utils/ApiError.js";
 
 /**
- * @desc    Submit Feedback for a Session
+ * @desc    Submit Feedback for a completed session
  * @route   POST /api/feedback
  * @access  Private (Tutee)
- * @srs     4.6 Tutor Evaluation and Feedback
+ * @srs     4.6.3 REQ-1, REQ-2, REQ-3, REQ-4, REQ-5
  */
-export const createFeedback = async (req, res) => {
-  const { sessionId, rating, comment } = req.body;
-
+export const submitFeedback = async (req, res, next) => {
   try {
-    // 1. Validate Session Existence and Status
+    const { sessionId, rating, comment } = req.body;
+
+    // 1. Validate Session basics
     const session = await Session.findById(sessionId);
-    if (!session) {
-      return res.status(404).json({ message: "Session not found." });
-    }
+    if (!session) throw new ApiError("Session not found", 404);
 
-    // SRS 4.6.1: "after the session is completed"
-    if (session.status !== 'done') {
-      return res.status(400).json({ message: "You can only rate completed sessions." });
-    }
-
-    // 2. Validate Ownership (Must be the Tutee who booked it)
-    if (session.createdByTuteeId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "You are not authorized to rate this session." });
-    }
-
-    // 3. Prevent Duplicates (SRS 4.6.3 REQ-5)
+    // SRS 4.6.3 REQ-5: Prevent duplicate feedback
     const existingFeedback = await Feedback.findOne({ sessionId });
-    if (existingFeedback) {
-      return res.status(400).json({ message: "You have already submitted feedback for this session." });
+    if (existingFeedback) throw new ApiError("Feedback has already been submitted for this session.", 400);
+
+    // Check if session is actually done
+    if (session.status !== "done") {
+      throw new ApiError("Feedback can only be submitted for completed sessions.", 400);
     }
 
-    // 4. Create Feedback
+    // Check if requester is the tutee of this session
+    if (session.createdByTuteeId.toString() !== req.user._id.toString()) {
+      throw new ApiError("You are not authorized to evaluate this session.", 403);
+    }
+
+    // 2. Create Feedback
     const feedback = await Feedback.create({
       sessionId,
-      tutorId: session.tutorId, // This is the User ID of the Tutor
+      tutorId: session.tutorId,
       tuteeId: req.user._id,
       rating,
       comment
     });
 
-    // 5. Update Tutor's Average Rating (SRS 4.6.3 REQ-3)
-    const tutor = await Tutor.findOne({ userId: session.tutorId });
-    if (tutor) {
+    // 3. Update Tutor Aggregate Rating (SRS 4.6.3 REQ-3)
+    const tutorProfile = await Tutor.findOne({ userId: session.tutorId });
+    if (tutorProfile) {
       const allFeedback = await Feedback.find({ tutorId: session.tutorId });
-      const totalRating = allFeedback.reduce((acc, curr) => acc + curr.rating, 0);
+      const avgRating = allFeedback.reduce((acc, f) => acc + f.rating, 0) / allFeedback.length;
       
-      tutor.ratingCount = allFeedback.length;
-      tutor.rating = totalRating / allFeedback.length;
-      
-      await tutor.save();
+      tutorProfile.rating = parseFloat(avgRating.toFixed(2));
+      tutorProfile.ratingCount = allFeedback.length;
+      await tutorProfile.save();
     }
 
     res.status(201).json(feedback);
-
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server Error: Unable to submit feedback." });
+    next(error);
   }
 };
 
 /**
- * @desc    Get All Feedback for a Tutor
+ * @desc    Get feedback for a specific tutor (Admin Only)
  * @route   GET /api/feedback/tutor/:tutorId
- * @access  Private (Admin Only - SRS 4.6.3 REQ-6)
+ * @access  Private (Admin)
+ * @srs     4.6.3 REQ-6: Visible only to LRC admins
  */
-export const getFeedbackForTutor = async (req, res) => {
+export const getTutorFeedback = async (req, res, next) => {
   try {
-    const feedbackList = await Feedback.find({ tutorId: req.params.tutorId })
-      .populate('tuteeId', 'name email')
-      .populate('sessionId', 'topic startTime')
+    const feedback = await Feedback.find({ tutorId: req.params.tutorId })
+      .populate("tuteeId", "name email")
       .sort({ createdAt: -1 });
-
-    res.json(feedbackList);
+    res.json(feedback);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 };

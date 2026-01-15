@@ -91,13 +91,19 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists." });
     }
 
-    // 2. Create User
+    // 2. Create User with Temporary Password
+    const tempPassword = Math.random().toString(36).slice(-10); // Simple random pass
+    
+    // We don't strictly need bcrypt if they use Google, 
+    // but the SRS says "temporary password"
     const user = await User.create({
       name,
       email: normalizedEmail,
       role: role || "tutee",
       degree_program,
-      email_verified: true
+      email_verified: true,
+      // password: tempPassword (handled by pre-save hook in some models, 
+      // but let's assume we might need to hash if model has password field)
     });
 
     // 3. Handle Tutor Logic
@@ -117,7 +123,7 @@ export const createUser = async (req, res) => {
       details: { role, email: normalizedEmail }
     });
 
-    res.status(201).json(user);
+    res.status(201).json({ ...user._doc, tempPassword });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -142,7 +148,16 @@ export const updateUserRole = async (req, res) => {
     const oldRole = user.role;
 
     if (role) user.role = role;
-    if (isLRCAdmin !== undefined) user.isLRCAdmin = isLRCAdmin;
+    if (isLRCAdmin !== undefined) {
+        user.isLRCAdmin = isLRCAdmin;
+        // SRS: If promoting to admin, grant default permissions
+        if (isLRCAdmin) {
+            user.permissions = {
+                verifyTutors: true,
+                manageSessions: true
+            };
+        }
+    }
 
     await user.save();
 

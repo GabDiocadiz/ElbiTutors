@@ -31,4 +31,9 @@ router.get("/:id", getTutorById);
  */
 router.put("/profile", protect, tutorOnly, updateTutorProfile);
 
+// Admin Only: Approval Queue
+import { adminOnly } from "../middlewares/authMiddleware.js";
+router.get("/pending", protect, adminOnly, getPendingTutors);
+router.put("/:id/approve", protect, adminOnly, approveTutorChanges);
+
 export default router;
