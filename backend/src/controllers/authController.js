@@ -9,7 +9,7 @@ import ApiError from "../utils/ApiError.js";
 const googleClient = new OAuth2Client({
   clientId: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  redirectUri: process.env.GOOGLE_REDIRECT_URI, // e.g., 'https://your-app.vercel.app/api/auth/google'
+  redirectUri: 'postmessage',
 });
 
 /**
