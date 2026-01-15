@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 import '../styles/Admin.css';
 
 export default function AdminReports() {
@@ -97,9 +98,10 @@ export default function AdminReports() {
       // Refresh data
       const response = await api.get('/reports');
       setAllReports(response.data);
+      toast.success(`Report ${newStatus.toLowerCase()} successfully.`);
     } catch (error) {
       console.error("Error updating report status:", error);
-      alert("Failed to update report status.");
+      toast.error("Failed to update report status.");
     }
     setOpenActionMenuId(null);
   };

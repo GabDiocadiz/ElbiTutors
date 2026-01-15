@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 import '../styles/Admin.css';
 
 export default function AdminNewLRCUser() {
@@ -63,7 +64,7 @@ export default function AdminNewLRCUser() {
 
         await api.post('/users', payload);
         
-        setSuccessMessage(`Successfully created user: ${formData.name}`);
+        toast.success(`Successfully created user: ${formData.name}`);
         
         // Reset form
         setFormData({

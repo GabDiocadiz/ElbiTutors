@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminEditUserModal from '../components/EditUser';
 import ConfirmationModal from '../components/ConfirmationModal'; // Import the new modal
 import api from '../services/api';
+import toast from 'react-hot-toast';
 import '../styles/Admin.css';
 
 export default function AdminUsersList() {
@@ -111,22 +112,19 @@ export default function AdminUsersList() {
     try {
       // Call the DELETE endpoint
       await api.delete(`/users/${userToDelete._id}`);
-      // API call to update user role/status
-      await api.put(`/users/${updatedUser._id}/role`, { 
-        role: updatedUser.role,
-        isLRCAdmin: updatedUser.isLRCAdmin 
-      });
       
       // Refresh list
       const response = await api.get('/users');
       setAllUsers(response.data);
+      
+      toast.success("User deleted successfully.");
       
       // Reset state
       setIsDeleteModalOpen(false);
       setUserToDelete(null);
     } catch (error) {
       console.error("Error deleting user:", error.response?.data || error.message);
-      alert(error.response?.data?.message || "Failed to delete user.");
+      toast.error(error.response?.data?.message || "Failed to delete user.");
     }
   };
 
@@ -137,9 +135,10 @@ export default function AdminUsersList() {
       setAllUsers(response.data);
       setIsEditModalOpen(false);
       setSelectedUser(null);
+      toast.success("User information updated.");
     } catch (error) {
       console.error("Error updating user:", error);
-      alert(error.response?.data?.message || "Failed to update user.");
+      toast.error(error.response?.data?.message || "Failed to update user.");
     }
   };
 

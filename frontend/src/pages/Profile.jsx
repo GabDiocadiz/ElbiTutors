@@ -12,6 +12,7 @@ import Calendar from '../components/Calendar';
 import lrcBadge from '../assets/logo_lrc.png';
 import userPlaceholder from '../assets/user_placeholder.png';
 import api, { getUserProfile } from '../services/api';
+import toast from 'react-hot-toast';
 
 // Styling
 import '../styles/design.css';
@@ -106,8 +107,9 @@ const Profile = () => {
       // Refresh bookings
       const sessionRes = await api.get('/sessions/my-sessions');
       setBookings(sessionRes.data);
+      toast.success(`Session marked as ${status}.`);
     } catch (err) {
-      alert("Failed to update session status");
+      toast.error("Failed to update session status.");
     }
   };
 
@@ -127,9 +129,10 @@ const Profile = () => {
       // Refresh bookings after evaluation to hide button
       const sessionRes = await api.get('/sessions/my-sessions');
       setBookings(sessionRes.data);
+      toast.success("Evaluation submitted. Thank you!");
     } catch (err) {
       console.error("Feedback submission error:", err);
-      alert(err.response?.data?.message || "Failed to submit evaluation");
+      toast.error(err.response?.data?.message || "Failed to submit evaluation");
     }
   };
 
@@ -285,14 +288,14 @@ const Profile = () => {
               onSave={async (slotsJson) => {
                   try {
                       await api.put('/tutors/profile', { availabilityImage: slotsJson });
-                      alert("Availability schedule updated successfully!");
+                      toast.success("Availability schedule updated successfully!");
                       setIsEditingAvailability(false);
                       // Refresh data
                       const tutorRes = await api.get('/tutors/profile');
                       setTutorData(tutorRes.data);
                   } catch (err) {
                       console.error("Failed to save availability", err);
-                      alert("Failed to save schedule.");
+                      toast.error("Failed to save schedule.");
                   }
               }} 
             />
@@ -311,8 +314,9 @@ const Profile = () => {
           // Refresh
           const sessionRes = await api.get('/sessions/my-sessions');
           setBookings(sessionRes.data);
+          toast.success("Session cancelled.");
         } catch (err) {
-          alert("Failed to cancel session: " + (err.response?.data?.message || err.message));
+          toast.error("Failed to cancel session: " + (err.response?.data?.message || err.message));
         }
       }} />}
       {showReport && <ReportModal sessionData={selectedBooking} onClose={() => setShowReport(false)} />}

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
+import toast from "react-hot-toast";
 import logoLightMode from "../../assets/logo_lightmode.png";
 import "../../styles/design.css";
 
@@ -13,7 +14,7 @@ export default function Login() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     if (!credentialResponse?.credential) {
-      alert("Google login failed: missing credential.");
+      toast.error("Google login failed: missing credential.");
       return;
     }
 
@@ -35,6 +36,8 @@ export default function Login() {
         } else {
           navigate("/dashboard");
         }
+        
+        toast.success(`Welcome back, ${user.name}!`);
         return;
       }
 
@@ -58,7 +61,7 @@ export default function Login() {
         return;
       }
 
-      alert(
+      toast.error(
         err.response?.data?.message || "Google login failed. Please try again."
       );
     } finally {
