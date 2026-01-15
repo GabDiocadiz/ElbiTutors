@@ -13,7 +13,7 @@ import './styles/globals.css';
  * 3. Create an "OAuth 2.0 Client ID".
  * 4. Add "http://localhost:5173" to "Authorized JavaScript origins".
  */
-const GOOGLE_CLIENT_ID = "411286976139-urkdn2k4j6p5s4924en02l81n6jsvtmc.apps.googleusercontent.com"; 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID; 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

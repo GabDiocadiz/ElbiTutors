@@ -27,6 +27,15 @@ app.use(express.urlencoded({ extended: true })); // Parses URL-encoded requests
 
 app.use(requestLogger);
 
+// Rate Limiting
+import rateLimit from 'express-rate-limit';
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
+
 // Mount API Routes
 app.use("/api/tutors", tutorRoutes);
 app.use("/api/subjects", subjectRoutes);
