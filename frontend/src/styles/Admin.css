@@ -37,15 +37,8 @@
   font-size: 3.5rem;
   font-weight: 800;
   line-height: normal;
-  margin-bottom: 10px;
-  letter-spacing: -0.02em;
-}
-
-.admin-subtitle {
-  color: var(--text-muted);
-  font-size: 1.1rem;
   margin-bottom: 40px;
-  font-weight: 400;
+  letter-spacing: -0.02em;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -67,6 +60,7 @@
   min-width: 300px;
 }
 
+/* Action Buttons - Card Style */
 .admin-action-button {
   position: relative;
   display: flex;
@@ -103,13 +97,14 @@
 .admin-action-button:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 30px rgba(128, 0, 0, 0.1);
-  padding-left: 50px;
+  padding-left: 50px; /* Subtle text shift */
 }
 
 .admin-action-button:hover::before {
   width: 12px;
 }
 
+/* Stats Section */
 .admin-stats {
   display: flex;
   flex-direction: column;
@@ -151,7 +146,7 @@
   align-items: center;
   width: 100%;
   padding: 20px 30px;
-  background: #FFF8E1;
+  background: #FFF8E1; /* Light gold tint */
   border-left: 6px solid var(--uplb-gold);
   border-radius: 16px;
   color: var(--uplb-maroon);
@@ -215,6 +210,12 @@
   box-shadow: 0 4px 10px rgba(128, 0, 0, 0.2);
 }
 
+.admin-chip.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .admin-search {
   display: flex;
   align-items: center;
@@ -245,6 +246,10 @@
   font-weight: 500;
 }
 
+.admin-search-input::placeholder {
+  color: #999;
+}
+
 /* -------------------------------------------------------------------------- */
 /* 5. TABLES                                   */
 /* -------------------------------------------------------------------------- */
@@ -257,7 +262,7 @@
   border: 1px solid rgba(0, 0, 0, 0.02);
   border-radius: 24px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-  overflow: visible;
+  overflow: visible; /* Allows dropdowns to spill out */
 }
 
 .admin-table {
@@ -279,11 +284,12 @@
   font-size: 0.9rem;
   font-weight: 800;
   text-transform: uppercase;
-  text-align: center;
+  text-align: center; /* Centered headers */
   letter-spacing: 0.05em;
 }
 
 .admin-table-row {
+  position: relative; /* Context for dropdowns */
   height: 75px;
   background: #FFF;
   transition: background-color 0.2s ease;
@@ -294,26 +300,22 @@
 }
 
 .admin-table-row td {
-  padding: 15px 30px;
+  padding: 0 30px;
   border-bottom: 1px solid #F0F0F0;
   color: var(--text-main);
   font-family: var(--font-segoe);
   font-size: 1rem;
   vertical-align: middle;
-  text-align: center;
+  text-align: center; /* Centered cells */
 }
 
 .admin-table-row:last-child td {
   border-bottom: none;
 }
 
-.no-data-cell {
-  padding: 40px;
-  color: var(--text-muted);
-  font-family: var(--font-segoe);
-  font-size: 1.1rem;
-  font-style: italic;
-  text-align: center;
+/* Selected/Active Row state */
+.admin-table-row.selected {
+  background: #FAF3E0;
 }
 
 /* Checkbox */
@@ -329,12 +331,22 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
-  margin: 0 auto;
+  margin: 0 auto; /* Center checkbox */
 }
 
 .checkbox.checked {
   background: var(--uplb-maroon);
   border-color: var(--uplb-maroon);
+}
+
+/* Empty State */
+.no-data-cell {
+  padding: 40px;
+  color: var(--text-muted);
+  font-family: var(--font-segoe);
+  font-size: 1.1rem;
+  font-style: italic;
+  text-align: center;
 }
 
 /* Status Pills */
@@ -352,28 +364,25 @@
   border: 1px solid transparent;
 }
 
-.status-active, .status-resolved, .status-approved { 
+/* Green: Active / Resolved */
+.status-active, .status-resolved { 
   background-color: #E8F5E9; 
   color: #2E7D32; 
   border-color: #C8E6C9;
 }
 
-.status-done, .status-dismissed, .status-archived { 
+/* Grey: Done / Dismissed */
+.status-done, .status-dismissed { 
   background-color: #F5F5F5; 
   color: #616161; 
   border-color: #E0E0E0;
 }
 
+/* Gold/Orange: Pending */
 .status-pending { 
   background-color: #FFF8E1; 
   color: #F57F17; 
   border-color: #FFE082;
-}
-
-.status-rejected, .status-cancelled {
-  background-color: #FFEBEE;
-  color: #C62828;
-  border-color: #FFCDD2;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -402,12 +411,13 @@
   color: var(--uplb-maroon);
 }
 
+/* Update your existing .admin-action-menu */
 .admin-action-menu {
   position: absolute;
-  top: 40px;
+  top: 40px; /* Adjusted to sit better below the icon */
   right: 0;
   z-index: 1000;
-  display: none;
+  display: none; /* HIDE BY DEFAULT */
   flex-direction: column;
   min-width: 160px;
   background: #FFF;
@@ -418,6 +428,7 @@
   text-align: left;
 }
 
+/* NEW: This class will be toggled by JavaScript */
 .admin-action-menu.active {
   display: flex;
   animation: fadeIn 0.2s ease-out;
@@ -455,7 +466,7 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* 7. FORMS & BUTTONS                          */
+/* 7. FORMS                                    */
 /* -------------------------------------------------------------------------- */
 
 .admin-back-button {
@@ -482,33 +493,6 @@
   transform: translateX(-3px);
 }
 
-.admin-form-submit {
-  align-self: center;
-  width: 100%;
-  max-width: 200px;
-  height: 48px;
-  background: var(--uplb-maroon);
-  border: none;
-  border-radius: 50px;
-  box-shadow: 0 6px 20px rgba(128, 0, 0, 0.25);
-  color: #FFF;
-  font-family: var(--font-segoe);
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.admin-form-submit:hover {
-  background: #600000;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(128, 0, 0, 0.35);
-}
-
-/* Complex Forms (Restored) */
 .admin-form-card {
   width: 100%;
   max-width: 900px;
@@ -586,8 +570,37 @@
   box-shadow: 0 0 0 4px rgba(128, 0, 0, 0.05);
 }
 
+.admin-form-dropdown-placeholder {
+  color: #999;
+  font-weight: 500;
+}
+
+.admin-form-submit {
+  align-self: center;
+  width: 100%;
+  max-width: 200px;
+  height: 48px;
+  margin-top: 15px;
+  background: var(--uplb-maroon);
+  border: none;
+  border-radius: 50px;
+  box-shadow: 0 6px 20px rgba(128, 0, 0, 0.25);
+  color: #FFF;
+  font-family: var(--font-segoe);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-form-submit:hover {
+  background: #600000;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(128, 0, 0, 0.35);
+}
+
 /* -------------------------------------------------------------------------- */
-/* 8. PAGINATION (Restored)                    */
+/* 8. PAGINATION                               */
 /* -------------------------------------------------------------------------- */
 
 .admin-pagination {
@@ -607,245 +620,7 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* 9. NEW: CARDS & LISTS                       */
-/* -------------------------------------------------------------------------- */
-
-.admin-card-list {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-.admin-card {
-  background: #FFF;
-  border: 1px solid rgba(0, 0, 0, 0.02);
-  border-radius: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  padding: 30px;
-  transition: transform 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.admin-card:hover {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-}
-
-.admin-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  border-bottom: 2px solid #F5F5F5;
-  padding-bottom: 20px;
-}
-
-.admin-card-title-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.admin-card-title {
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: var(--uplb-maroon);
-    margin: 0;
-}
-
-.admin-card-subtitle {
-    color: #666;
-    font-size: 0.95rem;
-    margin: 5px 0 0 0;
-}
-
-.admin-card-body {
-    padding: 10px 0;
-}
-
-.admin-info-box {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #FAFAFA;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    color: #444;
-}
-
-.admin-card-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-  padding-top: 20px;
-  border-top: 2px solid #F5F5F5;
-}
-
-/* -------------------------------------------------------------------------- */
-/* 10. NEW: COMPARISON / DIFF VIEW             */
-/* -------------------------------------------------------------------------- */
-
-.comparison-container {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.comparison-row {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.comparison-label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #999;
-  letter-spacing: 0.05em;
-}
-
-.comparison-diff {
-  display: flex;
-  align-items: stretch;
-  gap: 15px;
-}
-
-.diff-arrow {
-  display: flex;
-  align-items: center;
-  color: #CCC;
-  font-size: 1.5rem;
-}
-
-.diff-box {
-  flex: 1;
-  padding: 15px;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-.diff-box.old {
-  background: #FFEBEE; /* Light Red */
-  color: #B71C1C;
-  border: 1px solid #FFCDD2;
-  text-decoration: line-through;
-  opacity: 0.8;
-}
-
-.diff-box.new {
-  background: #E8F5E9; /* Light Green */
-  color: #1B5E20;
-  border: 1px solid #C8E6C9;
-}
-
-/* -------------------------------------------------------------------------- */
-/* 11. NEW: TABLE UTILITIES & BUTTONS          */
-/* -------------------------------------------------------------------------- */
-
-.admin-user-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 2px;
-}
-
-.admin-user-name {
-  font-weight: 700;
-  display: block;
-}
-
-.admin-user-email {
-  font-size: 0.85rem;
-  color: #888;
-  display: block;
-}
-
-.admin-schedule-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.admin-schedule-date {
-  font-weight: 600;
-}
-
-.admin-schedule-time {
-  font-size: 0.85rem;
-  color: #666;
-}
-
-/* Small Button Group for Table Actions */
-.admin-btn-group {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
-
-.admin-btn-small {
-  padding: 6px 16px;
-  border-radius: 50px;
-  border: none;
-  font-family: var(--font-segoe);
-  font-weight: 700;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: white;
-  white-space: nowrap;
-}
-
-.admin-btn-small:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.btn-approve { background: #2E7D32; }
-.btn-reject { background: #D32F2F; }
-.btn-neutral { background: #1976D2; } /* Mark as Done */
-
-/* Audit Log Specifics */
-.admin-timestamp {
-  font-weight: 600;
-  color: #555;
-  display: block;
-}
-
-.admin-timestamp-sub {
-  font-size: 0.85rem;
-  color: #999;
-  display: block;
-}
-
-.log-target-id {
-  font-family: monospace;
-  font-size: 0.9rem;
-  background: #F5F5F5;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.log-details-summary {
-  cursor: pointer;
-  font-size: 0.85rem;
-  color: #666;
-  text-decoration: underline;
-}
-
-.log-details-pre {
-  background: #f4f4f4;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 5px;
-  overflow-x: auto;
-  font-family: monospace;
-  font-size: 0.85rem;
-  text-align: left;
-}
-
-/* -------------------------------------------------------------------------- */
-/* 12. RESPONSIVE (Restored)                   */
+/* 9. RESPONSIVE                               */
 /* -------------------------------------------------------------------------- */
 
 @media (max-width: 1024px) {
@@ -924,20 +699,10 @@
   .admin-form-title {
     font-size: 2rem;
   }
-
-  /* Comparison Diff Mobile */
-  .comparison-diff {
-    flex-direction: column;
-  }
-  
-  .diff-arrow {
-    transform: rotate(90deg);
-    justify-content: center;
-  }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 13. MODALS (Restored)                       */
+/* 10. MODALS                                  */
 /* -------------------------------------------------------------------------- */
 
 .admin-modal-overlay {

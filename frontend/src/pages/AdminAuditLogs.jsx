@@ -22,11 +22,11 @@ export default function AdminAuditLogs() {
     }
   };
 
-  const getActionPillStyle = (action) => {
-    if (action.includes('REJECT') || action.includes('DELETE')) return 'status-pill status-dismissed';
-    if (action.includes('APPROVE') || action.includes('RESOLVE')) return 'status-pill status-resolved';
-    if (action.includes('CREATE') || action.includes('UPDATE')) return 'status-pill status-active';
-    return 'status-pill status-pending';
+  const getLogColor = (action) => {
+    if (action.includes('REJECT')) return 'bg-red-50 text-red-700 border-red-200';
+    if (action.includes('APPROVE') || action.includes('RESOLVE')) return 'bg-green-50 text-green-700 border-green-200';
+    if (action.includes('CREATE')) return 'bg-blue-50 text-blue-700 border-blue-200';
+    return 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
   return (
@@ -34,67 +34,34 @@ export default function AdminAuditLogs() {
       <div className="admin-container">
         <h1 className="admin-title">System Audit Logs</h1>
         <p className="admin-subtitle">Chronological record of all administrative actions for accountability.</p>
-        
-        <div className="admin-controls">
-           <div className="admin-search">
-             <input type="text" placeholder="Search by Actor or Action..." className="admin-search-input" />
-           </div>
-        </div>
 
-        <div className="admin-table-container">
+        <div className="admin-content-card mt-6">
           {loading ? (
-            <div className="no-data-cell">Loading audit trail...</div>
+            <p className="text-center py-10">Loading audit trail...</p>
           ) : logs.length === 0 ? (
-            <div className="no-data-cell">No logs found.</div>
+            <p className="text-center py-10 text-gray-500">No logs found.</p>
           ) : (
-            <table className="admin-table">
-              <thead>
-                <tr className="admin-table-header">
-                  <th>Timestamp</th>
-                  <th>Action</th>
-                  <th>Actor</th>
-                  <th>Target ID</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map(log => (
-                  <tr key={log._id} className="admin-table-row">
-                    <td>
-                      <span className="admin-timestamp">
-                        {new Date(log.createdAt).toLocaleDateString()}
-                      </span>
-                      <span className="admin-timestamp-sub">
-                        {new Date(log.createdAt).toLocaleTimeString()}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={getActionPillStyle(log.action)}>
-                        {log.action}
-                      </span>
-                    </td>
-                    <td>
-                      <strong>{log.actorId?.name || "Unknown Admin"}</strong>
-                    </td>
-                    <td>
-                      <span className="log-target-id">{log.targetUserId || "N/A"}</span>
-                    </td>
-                    <td>
-                      {log.details ? (
-                        <details>
-                          <summary className="log-details-summary">View JSON</summary>
-                          <pre className="log-details-pre">
-                            {JSON.stringify(log.details, null, 2)}
-                          </pre>
-                        </details>
-                      ) : (
-                        <span>-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="log-list space-y-4">
+              {logs.map(log => (
+                <div key={log._id} className={`log-item p-4 rounded-lg border flex justify-between items-start ${getLogColor(log.action)}`}>
+                  <div className="log-details">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-sm tracking-wide">{log.action}</span>
+                      <span className="text-xs opacity-75">• {new Date(log.createdAt).toLocaleString()}</span>
+                    </div>
+                    <p className="text-sm">
+                      <span className="font-semibold">{log.actorId?.name || "Unknown Admin"}</span> 
+                      Performed action on target ID: {log.targetUserId || "N/A"}
+                    </p>
+                    {log.details && (
+                      <pre className="mt-2 text-xs bg-white/50 p-2 rounded overflow-x-auto">
+                        {JSON.stringify(log.details, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import '../styles/Admin.css';
+import '../styles/design.css';
 
 export default function AdminBookings() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('pending'); // pending, approved, done, cancelled
+  const [filter, setFilter] = useState('pending'); // pending, approved, rejected, done
 
   useEffect(() => {
     fetchSessions();
@@ -14,6 +14,9 @@ export default function AdminBookings() {
   const fetchSessions = async () => {
     try {
       setLoading(true);
+      // We need an endpoint to get ALL sessions for admin.
+      // For now, let's use the query parameter logic if supported, 
+      // or we might need to add a specific admin endpoint in sessionController.
       const response = await api.get(`/sessions/all?status=${filter}`);
       setSessions(response.data);
     } catch (err) {
@@ -26,6 +29,7 @@ export default function AdminBookings() {
   const handleStatusUpdate = async (sessionId, status) => {
     try {
       await api.put(`/sessions/${sessionId}/status`, { status });
+      // Update local state instead of re-fetching everything
       setSessions(prev => prev.filter(s => s._id !== sessionId));
     } catch (err) {
       alert("Failed to update session status");
@@ -33,124 +37,113 @@ export default function AdminBookings() {
   };
 
   return (
-    <div className="admin-page">
-      <div className="admin-container">
+    <div className="admin-page-container">
+      <div className="admin-header">
         <h1 className="admin-title">Session Management</h1>
-        <p className="admin-subtitle">Monitor and manage all tutoring sessions.</p>
-        
-        <div className="admin-controls">
-          <div className="admin-chip-group">
-            <button 
-              className={`admin-chip ${filter === 'pending' ? 'active' : ''}`}
-              onClick={() => setFilter('pending')}
-            >
-              Pending Requests
-            </button>
-            <button 
-              className={`admin-chip ${filter === 'approved' ? 'active' : ''}`}
-              onClick={() => setFilter('approved')}
-            >
-              Approved / Upcoming
-            </button>
-            <button 
-              className={`admin-chip ${filter === 'done' ? 'active' : ''}`}
-              onClick={() => setFilter('done')}
-            >
-              Completed
-            </button>
-            <button 
-              className={`admin-chip ${filter === 'cancelled' ? 'active' : ''}`}
-              onClick={() => setFilter('cancelled')}
-            >
-              Cancelled
-            </button>
-          </div>
+        <div className="admin-tabs">
+          <button 
+            className={`admin-tab ${filter === 'pending' ? 'active' : ''}`}
+            onClick={() => setFilter('pending')}
+          >
+            Pending
+          </button>
+          <button 
+            className={`admin-tab ${filter === 'approved' ? 'active' : ''}`}
+            onClick={() => setFilter('approved')}
+          >
+            Approved
+          </button>
+          <button 
+            className={`admin-tab ${filter === 'done' ? 'active' : ''}`}
+            onClick={() => setFilter('done')}
+          >
+            Completed
+          </button>
+          <button 
+            className={`admin-tab ${filter === 'cancelled' ? 'active' : ''}`}
+            onClick={() => setFilter('cancelled')}
+          >
+            Cancelled
+          </button>
         </div>
+      </div>
 
-        <div className="admin-table-container">
-          {loading ? (
-             <div className="no-data-cell">Loading sessions...</div>
-          ) : sessions.length === 0 ? (
-             <div className="no-data-cell">No {filter} sessions found.</div>
-          ) : (
+      <div className="admin-content-card">
+        {loading ? (
+          <p className="text-center py-10">Loading sessions...</p>
+        ) : sessions.length === 0 ? (
+          <p className="text-center py-10 text-gray-500">No {filter} sessions found.</p>
+        ) : (
+          <div className="admin-table-wrapper">
             <table className="admin-table">
               <thead>
-                <tr className="admin-table-header">
+                <tr>
                   <th>Tutee</th>
                   <th>Tutor</th>
                   <th>Topic</th>
                   <th>Schedule</th>
-                  <th>Type</th>
+                  <th>Participants</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {sessions.map(session => (
-                  <tr key={session._id} className="admin-table-row">
+                  <tr key={session._id}>
                     <td>
-                      <div className="admin-user-cell">
-                        <span className="admin-user-name">{session.createdByTuteeId?.name}</span>
-                        <span className="admin-user-email">{session.createdByTuteeId?.email}</span>
+                      <div className="user-cell">
+                        <span className="user-name">{session.createdByTuteeId?.name}</span>
+                        <span className="user-email text-xs text-gray-400">{session.createdByTuteeId?.email}</span>
                       </div>
                     </td>
                     <td>
-                      <div className="admin-user-cell">
-                        <span className="admin-user-name">{session.tutorId?.name}</span>
-                        <span className="admin-user-email">{session.tutorId?.email}</span>
+                      <div className="user-cell">
+                        <span className="user-name">{session.tutorId?.name}</span>
+                        <span className="user-email text-xs text-gray-400">{session.tutorId?.email}</span>
                       </div>
                     </td>
                     <td>{session.topic}</td>
                     <td>
-                        <div className="admin-schedule-cell">
-                            <span className="admin-schedule-date">{new Date(session.startTime).toLocaleDateString()}</span>
-                            <span className="admin-schedule-time">
+                        <div className="schedule-cell">
+                            <div>{new Date(session.startTime).toLocaleDateString()}</div>
+                            <div className="text-xs text-gray-500">
                                 {new Date(session.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - 
                                 {new Date(session.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                            </span>
+                            </div>
                         </div>
                     </td>
+                    <td>{session.isGroup ? `${session.maxParticipants} (Group)` : '1 (Individual)'}</td>
                     <td>
-                      <span className="status-pill status-done">
-                        {session.isGroup ? `Group (${session.maxParticipants})` : 'Individual'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="admin-btn-group">
-                        {filter === 'pending' && (
-                          <>
-                            <button 
-                              className="admin-btn-small btn-approve" 
-                              onClick={() => handleStatusUpdate(session._id, 'approved')}
-                            >
-                              Approve
-                            </button>
-                            <button 
-                              className="admin-btn-small btn-reject"
-                              onClick={() => handleStatusUpdate(session._id, 'rejected')}
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
-                        {filter === 'approved' && (
+                      {filter === 'pending' && (
+                        <div className="action-btns">
                           <button 
-                            className="admin-btn-small btn-neutral"
-                            onClick={() => handleStatusUpdate(session._id, 'done')}
+                            className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 mr-2"
+                            onClick={() => handleStatusUpdate(session._id, 'approved')}
                           >
-                            Mark Done
+                            Approve
                           </button>
-                        )}
-                        {(filter === 'done' || filter === 'cancelled') && (
-                          <span className="admin-timestamp-sub">Archived</span>
-                        )}
-                      </div>
+                          <button 
+                            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                            onClick={() => handleStatusUpdate(session._id, 'rejected')}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                      {filter === 'approved' && (
+                        <button 
+                          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                          onClick={() => handleStatusUpdate(session._id, 'done')}
+                        >
+                          Mark as Done
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
