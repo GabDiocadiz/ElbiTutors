@@ -2,7 +2,9 @@ import express from "express";
 import { 
   getTutors, 
   getTutorById, 
-  updateTutorProfile 
+  updateTutorProfile,
+  getPendingTutors,
+  approveTutorChanges
 } from "../controllers/tutorController.js";
 
 // Middleware
@@ -17,6 +19,12 @@ const router = express.Router();
  */
 router.get("/", getTutors);
 
+// Admin Only: Approval Queue
+import { adminOnly } from "../middlewares/authMiddleware.js";
+router.get("/pending", protect, adminOnly, getPendingTutors);
+
+router.put("/profile", protect, tutorOnly, updateTutorProfile);
+
 /**
  * @route   GET /api/tutors/:id
  * @desc    View Specific Tutor Profile
@@ -24,11 +32,6 @@ router.get("/", getTutors);
  */
 router.get("/:id", getTutorById);
 
-/**
- * @route   PUT /api/tutors/profile
- * @desc    Edit My Tutor Profile
- * @access  Private (Tutor Only)
- */
-router.put("/profile", protect, tutorOnly, updateTutorProfile);
+router.put("/:id/approve", protect, adminOnly, approveTutorChanges);
 
 export default router;

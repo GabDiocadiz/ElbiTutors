@@ -102,6 +102,19 @@ const AdminEditUserModal = ({ isOpen, onClose, user, onSave }) => {
             />
           </div>
 
+          <div className="admin-form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
+            <input 
+              type="checkbox"
+              id="isLRCAdmin"
+              name="isLRCAdmin"
+              checked={formData.role === 'admin' || formData.isLRCAdmin}
+              onChange={(e) => setFormData(prev => ({ ...prev, isLRCAdmin: e.target.checked }))}
+            />
+            <label htmlFor="isLRCAdmin" className="admin-form-label" style={{ marginBottom: 0 }}>
+              Grant Administrator Privileges
+            </label>
+          </div>
+
           <div className="admin-modal-actions">
             <button type="button" onClick={onClose} className="admin-modal-button cancel">
               Cancel

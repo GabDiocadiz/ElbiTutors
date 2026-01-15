@@ -1,6 +1,8 @@
 import Session from "../models/Session.js";
 import User from "../models/User.js";
+import AuditLog from "../models/AuditLog.js";
 import ApiError from "../utils/ApiError.js";
+import { sendBookingStatusEmail } from "../utils/emailService.js";
 
 /**
  * @desc    Book a new session
@@ -135,7 +137,8 @@ export const getMySessions = async (req, res, next) => {
 export const updateSessionStatus = async (req, res, next) => {
   const { status } = req.body; 
 
-  const validStatuses = ["approved", "rejected", "done"];
+  // SRS 4.5.3 REQ-4: Support 'cancelled' status
+  const validStatuses = ["approved", "rejected", "done", "cancelled"];
   if (!validStatuses.includes(status)) {
     throw new ApiError(`Invalid status. Allowed: ${validStatuses.join(", ")}`, 400);
   }
@@ -147,17 +150,68 @@ export const updateSessionStatus = async (req, res, next) => {
 
     if (!session) throw new ApiError("Session not found", 404);
 
-    session.status = status;
-    session.approvedByAdminId = req.user._id;
+    // Permission Check: Granular (SRS 4.2.3)
+    const isAdmin = req.user.role === 'admin' || req.user.isLRCAdmin;
+    const isTutorOfSession = session.tutorId._id.toString() === req.user._id.toString();
+    const isTuteeOwner = session.createdByTuteeId._id.toString() === req.user._id.toString();
+    const canManageSessions = isAdmin && (req.user.role === 'admin' || req.user.permissions?.manageSessions);
 
-    // TODO: SRS 4.5.2 - Integrate Email Notification System here
-    if (status === 'approved') {
-       console.log(`[Stub] Emailing confirmation to ${session.tutorId.email} and ${session.createdByTuteeId.email}`);
+    if (!canManageSessions) {
+      if ((isTutorOfSession && status === 'done')) {
+         if (session.status !== 'approved') throw new ApiError("Only approved sessions can be marked as done.", 400);
+      } else if (isTuteeOwner && status === 'cancelled') {
+         if (session.status === 'done' || session.status === 'rejected') throw new ApiError("Cannot cancel a completed or rejected session.", 400);
+      } else {
+        throw new ApiError("You are not authorized to perform this action.", 403);
+      }
     }
 
+    session.status = status;
+    if (isAdmin) session.approvedByAdminId = req.user._id;
+
     const updatedSession = await session.save();
+
+    // SRS 4.5.2 - Email Notification System (Priority 1)
+    // Only send for admin decisions (Approve/Reject)
+    if (status === 'approved' || status === 'rejected') {
+       await sendBookingStatusEmail(
+         session.createdByTuteeId.email,
+         session.tutorId.email,
+         session, // Contains populated tutor/tutee details
+         status
+       );
+    }
+
+    await AuditLog.create({
+      actorId: req.user._id,
+      action: `ADMIN_SESSION_${status.toUpperCase()}`,
+      targetUserId: session.createdByTuteeId._id,
+      details: { sessionId: session._id, tutorId: session.tutorId._id }
+    });
+
     res.json(updatedSession);
 
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Admin: Get all sessions (Status filter)
+ * @route   GET /api/sessions/all
+ * @access  Private (Admin)
+ */
+export const getAllSessions = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    const filter = status ? { status } : {};
+
+    const sessions = await Session.find(filter)
+      .populate("tutorId", "name email")
+      .populate("createdByTuteeId", "name email")
+      .sort({ startTime: -1 });
+
+    res.json(sessions);
   } catch (error) {
     next(error);
   }
