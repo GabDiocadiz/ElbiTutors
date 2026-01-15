@@ -60,14 +60,14 @@ function App() {
         {/* --- ADMIN ROUTES (Admin Only) --- */}
         {/* If a 'tutee' tries to go here, they get kicked to /dashboard */}
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-            <Route path="/admin" element={<><SimpleNavbar /><AdminPanel /></>} />
-            <Route path="/admin/dashboard" element={<><SimpleNavbar /><AdminDashboard /></>} />
-            <Route path="/admin/users" element={<><SimpleNavbar /><AdminUsersList /></>} />
-            <Route path="/admin/new-lrc-user" element={<><SimpleNavbar /><AdminNewLRCUser /></>} />
-            <Route path="/admin/reports" element={<><SimpleNavbar /><AdminReports /></>} /> 
-            <Route path="/admin/bookings" element={<><SimpleNavbar /><AdminBookings /></>} />
-            <Route path="/admin/tutor-approvals" element={<><SimpleNavbar /><AdminTutorApprovals /></>} />
-            <Route path="/admin/audit-logs" element={<><SimpleNavbar /><AdminAuditLogs /></>} />
+            <Route path="/admin" element={<><Navbar /><AdminPanel /></>} />
+            <Route path="/admin/dashboard" element={<><Navbar /><AdminDashboard /></>} />
+            <Route path="/admin/users" element={<><Navbar /><AdminUsersList /></>} />
+            <Route path="/admin/new-lrc-user" element={<><Navbar /><AdminNewLRCUser /></>} />
+            <Route path="/admin/reports" element={<><Navbar /><AdminReports /></>} /> 
+            <Route path="/admin/bookings" element={<><Navbar /><AdminBookings /></>} />
+            <Route path="/admin/tutor-approvals" element={<><Navbar /><AdminTutorApprovals /></>} />
+            <Route path="/admin/audit-logs" element={<><Navbar /><AdminAuditLogs /></>} />
         </Route>
 
         {/* 404 Page */}
