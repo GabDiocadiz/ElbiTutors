@@ -14,23 +14,25 @@ export const getTutors = async (req, res, next) => {
   const { keyword, subject } = req.query;
 
   try {
+    // SRS: Only allow ACTIVE users to be listed as tutors
+    const activeUsers = await User.find({ status: 'active' }).select('_id');
+    const activeUserIds = activeUsers.map(u => u._id);
+
     // Base Query: We only list CERTIFIED tutors (SRS 2.3)
-    let query = { certified: true };
+    let query = { 
+      certified: true,
+      userId: { $in: activeUserIds }
+    };
 
     // --- SEARCH LOGIC ---
     if (keyword) {
       const regex = new RegExp(keyword, 'i'); // Case-insensitive
 
-      // Step A: Find Users matching the name (e.g., "Juan")
-      const userMatches = await User.find({ name: regex }).select('_id');
+      // Step A: Find Users matching the name AND are active
+      const userMatches = await User.find({ name: regex, status: 'active' }).select('_id');
       const userIds = userMatches.map(u => u._id);
 
       // Step B: Construct Tutor Query
-      // Match if: 
-      // 1. The Tutor's User ID is in the name list OR
-      // 2. The Tutor's Bio matches OR
-      // 3. The Tutor's Specialization text matches OR
-      // 4. The Tutor offers a subject matching the keyword
       query.$or = [
         { userId: { $in: userIds } },
         { bio: regex },
@@ -47,7 +49,7 @@ export const getTutors = async (req, res, next) => {
 
     // Execute
     const tutors = await Tutor.find(query)
-      .populate("userId", "name email picture degree_program classification") // Join User Data
+      .populate("userId", "name email picture degree_program classification status") // Join User Data
       .select("-__v"); // Clean output
 
     res.json(tutors);

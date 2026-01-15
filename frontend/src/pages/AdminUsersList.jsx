@@ -200,6 +200,7 @@ export default function AdminUsersList() {
                 <th>UP Mail</th>
                 <th>Full Name</th>
                 <th>Degree Program</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -221,6 +222,11 @@ export default function AdminUsersList() {
                     <td>{user.email}</td>
                     <td>{user.name}</td>
                     <td>{user.degree_program || 'N/A'}</td>
+                    <td>
+                      <span className={`status-pill status-${user.status || 'active'}`}>
+                        {user.status || 'active'}
+                      </span>
+                    </td>
                     <td className="admin-action-cell">
                       <button 
                         className="admin-action-icon"

@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import Tutor from "../models/Tutor.js";
+import Session from "../models/Session.js";
 import AuditLog from "../models/AuditLog.js";
 
 /**
@@ -206,6 +207,17 @@ export const updateUserStatus = async (req, res) => {
     user.status = status;
     await user.save();
 
+    // If deactivating or suspending, cancel their pending/approved sessions
+    if (status === 'inactive' || status === 'suspended') {
+      await Session.updateMany(
+        { 
+          $or: [{ tutorId: user._id }, { createdByTuteeId: user._id }],
+          status: { $in: ['pending', 'approved'] }
+        },
+        { status: 'cancelled' }
+      );
+    }
+
     await AuditLog.create({
       actorId: req.user._id,
       action: "ADMIN_UPDATE_STATUS",
@@ -214,6 +226,29 @@ export const updateUserStatus = async (req, res) => {
     });
 
     res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+/**
+ * @desc    Get Admin Dashboard Stats
+ * @route   GET /api/users/stats
+ * @access  Private (Admin Only)
+ */
+export const getUserStats = async (req, res) => {
+  try {
+    const tutorsCount = await User.countDocuments({ role: "tutor" });
+    
+    // We can also count other things here to return in one go
+    // But since the current dashboard has separate calls, we'll start with this
+    // or just return everything as expected by the dashboard.
+    
+    // To match the current dashboard's needs:
+    res.json({
+      tutorsCount,
+      // We could add more here, but let's keep it simple for now 
+      // or match the dashboard state.
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

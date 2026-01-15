@@ -15,9 +15,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch users to count tutors
-        const usersRes = await api.get('/users');
-        const tutorsCount = usersRes.data.filter(u => u.role === 'tutor').length;
+        // Fetch specific dashboard stats from backend
+        const statsRes = await api.get('/users/stats');
+        const tutorsCount = statsRes.data.tutorsCount || 0;
 
         // Fetch reports to count pending
         const reportsRes = await api.get('/reports?status=pending');
