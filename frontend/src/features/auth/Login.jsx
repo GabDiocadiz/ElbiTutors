@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGoogleLogin } from "@react-oauth/google"; // Import the hook
+import { GoogleLogin } from "@react-oauth/google"; // Used this
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 import toast from "react-hot-toast";
@@ -13,15 +13,14 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    // This function remains the same as it's the logic AFTER getting the credential
-    if (!credentialResponse?.credential) {
+    if (!credentialResponse?.credential) { // This is what you were expecting
       toast.error("Google login failed: missing credential.");
-      setLoading(false);
       return;
     }
 
     try {
-      // setLoading is already true from the button click
+      setLoading(true);
+
       const response = await api.post("/auth/google", {
         credential: credentialResponse.credential,
       });
@@ -50,6 +49,8 @@ export default function Login() {
       // NEW USER: 404 + googleData
       const googleData = err.response?.data?.googleData;
       if (googleData) {
+        // IMPORTANT: Attach the credential (ID Token) to the data object
+        // This is required for the final registration step in TermsAndConditions
         const dataToSave = { 
           ...googleData, 
           idToken: credentialResponse.credential 
@@ -67,22 +68,11 @@ export default function Login() {
       setLoading(false);
     }
   };
-  
-  // Initialize the login hook
-  const login = useGoogleLogin({
-    onSuccess: handleGoogleSuccess,
-    onError: () => {
-      toast.error("Google login failed. Please try again.");
-      setLoading(false);
-    },
-    // The 'code' flow is more secure, but requires more backend logic.
-    // Your current implementation uses the 'implicit' flow which gives a credential directly.
-    // We will stick to the implicit flow to match your backend.
-  });
 
   const handleCustomButtonClick = () => {
-    setLoading(true);
-    login(); // Call the function from the hook
+    const googleButton = document.querySelector('div[role="button"]');
+    if (googleButton) googleButton.click();
+    else alert("Google login button not ready. Please try again.");
   };
 
   return (
@@ -100,15 +90,21 @@ export default function Login() {
             className="login-btn-maroon"
             disabled={loading}
           >
-            {loading ? "Connecting..." : <>Login with <strong>UP Mail</strong></>}
+            {loading ? "Connecting..." : <>Login with <strong>UP Mail</>}
           </button>
 
           {/* RESTORED BUTTON */}
           <button onClick={() => navigate("/about")} className="login-btn-gray">
             What is ELBI Tutors?
           </button>
-          
-          {/* The hidden GoogleLogin component is no longer needed */}
+
+          <div style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => alert("Google login failed")}
+              useOneTap={false}
+            />
+          </div>
         </div>
       </div>
     </div>
