@@ -10,6 +10,7 @@ import subjectRoutes from "./routes/subjectRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import reportRoutes from './routes/reportRoutes.js';
 import feedbackRoutes from "./routes/feedbackRoutes.js";
+import auditLogRoutes from "./routes/auditLogRoutes.js";
 
 const app = express();
 app.use(cors({
@@ -34,6 +35,7 @@ app.use("/api/sessions", sessionRoutes);
 app.use("/api/auth", authRoutes);
 app.use('/api/reports', reportRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/audit-logs", auditLogRoutes);
 
 // Root route for API status check
 app.get("/", (req, res) => {

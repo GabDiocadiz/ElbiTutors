@@ -1,5 +1,6 @@
 import Report from "../models/Report.js";
 import User from "../models/User.js";
+import AuditLog from "../models/AuditLog.js";
 import ApiError from "../utils/ApiError.js";
 
 /**
@@ -94,6 +95,13 @@ export const resolveReport = async (req, res, next) => {
       }
     }
 
+    await AuditLog.create({
+      actorId: req.user._id,
+      action: "ADMIN_RESOLVE_REPORT",
+      targetUserId: report.reportedId,
+      details: { reportId: report._id, issueWarning }
+    });
+
     res.json({ message, report });
   } catch (error) {
     next(error);
@@ -116,6 +124,13 @@ export const dismissReport = async (req, res, next) => {
     report.status = "dismissed";
     await report.save();
 
+    await AuditLog.create({
+      actorId: req.user._id,
+      action: "ADMIN_DISMISS_REPORT",
+      targetUserId: report.reportedId,
+      details: { reportId: report._id }
+    });
+
     res.json({ message: "Report dismissed.", report });
   } catch (error) {
     next(error);
@@ -129,6 +144,12 @@ export const dismissReport = async (req, res, next) => {
  */
 export const updateReportStatus = async (req, res, next) => {
   try {
+    // SRS Granular Check: Admin needs 'verifyTutors' or a specific 'manageReports' flag?
+    // Let's assume manageSessions implies general admin, or we add a new one.
+    // For now, let's stick to the current adminOnly middleware at the route level,
+    // but we can enforce it here too if needed.
+    
+    // NOTE: Route already uses adminOnly. We can add specific check if we had a "manageReports" flag.
     const { status } = req.body;
     const report = await Report.findById(req.params.id);
 

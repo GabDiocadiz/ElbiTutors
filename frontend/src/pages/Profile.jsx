@@ -100,8 +100,37 @@ const Profile = () => {
     if (type === 'view') setShowDetails(true);
   };
 
-  const handleEvaluationSubmit = () => {
-    setShowEvaluation(false);
+  const handleStatusUpdate = async (sessionId, status) => {
+    try {
+      await api.put(`/sessions/${sessionId}/status`, { status });
+      // Refresh bookings
+      const sessionRes = await api.get('/sessions/my-sessions');
+      setBookings(sessionRes.data);
+    } catch (err) {
+      alert("Failed to update session status");
+    }
+  };
+
+  const handleEvaluationSubmit = async (evaluationData) => {
+    try {
+      // Average the ratings for the Likert scale (1-5)
+      const values = Object.values(evaluationData.ratings);
+      const avg = values.length > 0 ? values.reduce((a, b) => a + Number(b), 0) / values.length : 5;
+      
+      await api.post('/feedback', {
+        sessionId: selectedBooking._id,
+        rating: Math.round(avg), 
+        comment: evaluationData.comments
+      });
+      
+      setShowEvaluation(false);
+      // Refresh bookings after evaluation to hide button
+      const sessionRes = await api.get('/sessions/my-sessions');
+      setBookings(sessionRes.data);
+    } catch (err) {
+      console.error("Feedback submission error:", err);
+      alert(err.response?.data?.message || "Failed to submit evaluation");
+    }
   };
 
   if (loading) {
@@ -166,17 +195,13 @@ const Profile = () => {
 
         {/* REPORT LINK - Tutee Only */}
         {!isTutor && (
-          <div className="report-link-section" style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <p>
-              <span className="report-text-gray" style={{ color: '#959595', fontSize: '15px', fontWeight: '700' }}>If you're experiencing a problem, click </span>
-              <button 
-                className="report-link" 
-                style={{ color: '#800000', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: '15px', fontWeight: '700', padding: 0 }}
-                onClick={() => setShowReport(true)}
-              >
+          <div className="report-container">
+            <p className="report-text">
+              If you're experiencing a problem, click{" "}
+              <button onClick={() => setShowReport(true)} className="report-link">
                 here
               </button>
-              <span className="report-text-gray" style={{ color: '#959595', fontSize: '15px', fontWeight: '700' }}> to report.</span>
+              {" "}to report.
             </p>
           </div>
         )}
@@ -204,6 +229,16 @@ const Profile = () => {
                     <div className="action-buttons">
                       <button className="btn-pill btn-view" onClick={() => handleAction('view', booking)}>View</button>
                       
+                      {isTutor && booking.status === 'approved' && (
+                        <button 
+                          className="btn-pill" 
+                          style={{backgroundColor: '#800000', color: 'white'}} 
+                          onClick={() => handleStatusUpdate(booking._id, 'done')}
+                        >
+                          Mark as Done
+                        </button>
+                      )}
+
                       {!isTutor && booking.status === 'done' && (
                         <button 
                           className="btn-pill btn-evaluate" 
@@ -246,7 +281,20 @@ const Profile = () => {
             
             <Calendar 
               readOnly={!isEditingAvailability} 
-              initialEvents={tutorData?.availabilityImage} 
+              initialEvents={tutorData?.availabilityImage}
+              onSave={async (slotsJson) => {
+                  try {
+                      await api.put('/tutors/profile', { availabilityImage: slotsJson });
+                      alert("Availability schedule updated successfully!");
+                      setIsEditingAvailability(false);
+                      // Refresh data
+                      const tutorRes = await api.get('/tutors/profile');
+                      setTutorData(tutorRes.data);
+                  } catch (err) {
+                      console.error("Failed to save availability", err);
+                      alert("Failed to save schedule.");
+                  }
+              }} 
             />
           </section>
         )}
@@ -255,7 +303,18 @@ const Profile = () => {
       </div>
 
       <Footer />
-      {showCancel && <CancellationModal sessionData={selectedBooking} onClose={() => setShowCancel(false)} />}
+      {showCancel && <CancellationModal sessionData={selectedBooking} onClose={() => setShowCancel(false)} onSubmit={async (data) => {
+        try {
+          // SRS 4.5.3 REQ-4: Session Cancellation by Tutee
+          // We'll treat this as updating status to 'cancelled'
+          await api.put(`/sessions/${selectedBooking._id}/status`, { status: "cancelled", reason: data.reason });
+          // Refresh
+          const sessionRes = await api.get('/sessions/my-sessions');
+          setBookings(sessionRes.data);
+        } catch (err) {
+          alert("Failed to cancel session: " + (err.response?.data?.message || err.message));
+        }
+      }} />}
       {showReport && <ReportModal sessionData={selectedBooking} onClose={() => setShowReport(false)} />}
       {showEvaluation && <EvaluationForm sessionData={selectedBooking} onClose={() => setShowEvaluation(false)} onSubmit={handleEvaluationSubmit} />}
       {showDetails && <BookingDetails sessionData={selectedBooking} onClose={() => setShowDetails(false)} />}

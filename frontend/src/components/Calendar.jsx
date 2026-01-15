@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/Calendar.css';
 
 /**
@@ -9,7 +9,7 @@ import '../styles/Calendar.css';
  * - Interactive plotting with click-and-drag functionality.
  */
 
-const Calendar = ({ readOnly = false }) => {
+const Calendar = ({ readOnly = false, googleCalendarLink = null, initialEvents = null, onSave = null }) => {
   // Days of the week
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   
@@ -35,6 +35,28 @@ const Calendar = ({ readOnly = false }) => {
   const [selectedSlots, setSelectedSlots] = useState(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [dragMode, setDragMode] = useState('select'); // 'select' or 'deselect'
+
+  // Load initial events
+  useEffect(() => {
+    if (initialEvents) {
+      try {
+        const parsed = JSON.parse(initialEvents);
+        if (Array.isArray(parsed)) {
+            setSelectedSlots(new Set(parsed));
+        }
+      } catch (e) {
+        // Fallback or ignore if invalid JSON
+        console.warn("Invalid availability data", e);
+      }
+    }
+  }, [initialEvents]);
+
+  const handleSave = () => {
+      if (onSave) {
+          const slotsArray = Array.from(selectedSlots);
+          onSave(JSON.stringify(slotsArray));
+      }
+  };
 
   // Toggle a slot's selection status
   const toggleSlot = (dayIndex, timeIndex) => {
@@ -92,7 +114,7 @@ const Calendar = ({ readOnly = false }) => {
             <button className="calendar-btn btn-secondary" onClick={() => setSelectedSlots(new Set())}>
               Clear All
             </button>
-            <button className="calendar-btn btn-primary" onClick={() => alert('Schedule Saved!')}>
+            <button className="calendar-btn btn-primary" onClick={handleSave}>
               Save Schedule
             </button>
           </div>
@@ -108,6 +130,18 @@ const Calendar = ({ readOnly = false }) => {
           <div className="legend-box color-available"></div>
           <span>Available</span>
         </div>
+        {/* SRS 4.4.3 REQ-3 Integration */}
+        {readOnly && googleCalendarLink && (
+            <a 
+              href={googleCalendarLink} 
+              target="_blank" 
+              rel="noreferrer"
+              className="calendar-btn btn-primary"
+              style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              🗓️ Sync with Google Calendar
+            </a>
+        )}
       </div>
 
       <div className="calendar-grid">
