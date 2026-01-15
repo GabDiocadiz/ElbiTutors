@@ -8,7 +8,7 @@ import ApiError from "../utils/ApiError.js";
  * IMPORTANT:
  * This client ID MUST MATCH the frontend GoogleLogin client_id
  */
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "411286976139-urkdn2k4j6p5s4924en02l81n6jsvtmc.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "411286976139-aqd6o67sjhn1a00ephovavgcfii8pf2g.apps.googleusercontent.com";
 
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
