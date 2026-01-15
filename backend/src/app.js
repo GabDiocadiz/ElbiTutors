@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-// import requestLogger from './middlewares/requestLogger.js';
+import requestLogger from './middlewares/requestLogger.js';
 import errorMiddleware from './middlewares/errorMiddleware.js';
 
 import sessionRoutes from "./routes/sessionRoutes.js";
@@ -24,8 +24,7 @@ app.use(express.json()); // Parses incoming JSON requests
 app.use(express.urlencoded({ extended: true })); // Parses URL-encoded requests
 // app.use(cors()); // Enables Cross-Origin Resource Sharing
 
-// TODO: Implement requestLogger middleware
-// app.use(requestLogger);
+app.use(requestLogger);
 
 // Mount API Routes
 app.use("/api/tutors", tutorRoutes);
