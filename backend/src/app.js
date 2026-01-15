@@ -14,7 +14,7 @@ import auditLogRoutes from "./routes/auditLogRoutes.js";
 
 const app = express();
 app.use(cors({
-  origin: 'http://localhost:5173', // Allow your Frontend
+  origin: 'https://elbitutors.vercel.app', // Allow your Frontend
   credentials: true,               // Allow cookies/tokens
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
