@@ -221,13 +221,13 @@ export default function AdminUsersList() {
                     <td className="admin-action-cell">
                       <button 
                         className="admin-action-icon"
-                        onClick={(e) => toggleActionMenu(user.id, e)}
+                        onClick={(e) => toggleActionMenu(user._id, e)}
                       >
                         ⋮
                       </button>
                       
-                      {openActionMenuId === user.id && (
-                        <div className="admin-action-menu">
+                      {openActionMenuId === user._id && (
+                        <div className="admin-action-menu active">
                           <button className="admin-action-item" onClick={() => handleEdit(user)}>
                             Edit
                           </button>
