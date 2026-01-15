@@ -2,6 +2,7 @@
 import '../styles/Components.css';
 
 import { useState, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 const COURSE_CODES_LIST = ['AAE', 'ABE', 'AGRI', 'ANSC', 'BIO', 'BOT', 'CE', 'ChE', 'CHEM', 'CMSC', 'ECON', 'EE', 'ENSC', 'FBS', 'FOR', 'FPPS', 'FRM', 'Math', 'MCB', 'PHYS', 'SFI', 'STAT'];
 
@@ -73,7 +74,7 @@ export default function BookingModal({ tutorName, onClose, onSubmit }) {
       
       // Check if it's a weekend (0 = Sunday, 6 = Saturday)
       if (day === 0 || day === 6) {
-        alert("Please select a weekday (Monday to Friday).");
+        toast.error("Please select a weekday (Monday to Friday).");
         return; // Don't update state if weekend
       }
     }
@@ -99,7 +100,7 @@ export default function BookingModal({ tutorName, onClose, onSubmit }) {
 
     // Validate Course Code Selection
     if (formData.courseCode.length === 0) {
-      alert("Please select at least one Course Code.");
+      toast.error("Please select at least one Course Code.");
       return;
     }
 
@@ -108,7 +109,7 @@ export default function BookingModal({ tutorName, onClose, onSubmit }) {
     const endMinutes = timeToMinutes(formData.timeTo);
 
     if (endMinutes <= startMinutes) {
-      alert("End time must be after start time.");
+      toast.error("End time must be after start time.");
       return;
     }
 

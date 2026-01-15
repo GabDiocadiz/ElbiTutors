@@ -28,12 +28,14 @@ import TutorProfileView from './pages/TutorProfileView';
 import Profile from './pages/Profile';
 import Study from './pages/Study';
 import NotFound from './pages/NotFound';
+import { Toaster } from 'react-hot-toast';
 
 function App() { 
   // Removed debug useEffect to prevent "no token" errors on mount when not logged in.
 
   return (
     <BrowserRouter>
+      <Toaster position="top-right" reverseOrder={false} />
       {/* NOTE: Ensure <AuthProvider> wraps everything either here 
          or in your main.jsx / index.js file 
       */}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api'; 
+import toast from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
@@ -98,7 +99,7 @@ export default function TutorProfileView() {
 
     } catch (err) {
       console.error("Booking failed", err.response?.data || err.message);
-      setError(err.response?.data?.message || "Booking failed. Please try again.");
+      toast.error(err.response?.data?.message || "Booking failed. Please try again.");
     }
   };
 
@@ -111,7 +112,7 @@ export default function TutorProfileView() {
       setShowReportModal(true); // ReportModal will handle the success state internally
     } catch (err) {
       console.error("Report submission failed", err.response?.data || err.message);
-      alert("Failed to submit report. Please try again.");
+      toast.error("Failed to submit report. Please try again.");
       setShowReportModal(false);
     }
   };
