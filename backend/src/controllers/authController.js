@@ -75,6 +75,14 @@ export const login = async (req, res, next) => {
       throw new ApiError("Invalid email or password", 401);
     }
 
+    // Check Account Status
+    if (user.status === 'suspended') {
+      throw new ApiError("Your account has been suspended due to policy violations.", 403);
+    }
+    if (user.status === 'inactive') {
+      throw new ApiError("This account is inactive.", 403);
+    }
+
     const token = jwt.sign(
       {
         id: user._id,
@@ -172,6 +180,14 @@ export const googleLogin = async (req, res, next) => {
       }
 
       if (updated) await user.save();
+
+      // Check Account Status
+      if (user.status === 'suspended') {
+        throw new ApiError("Your account has been suspended due to policy violations.", 403);
+      }
+      if (user.status === 'inactive') {
+        throw new ApiError("This account is inactive.", 403);
+      }
     }
     else {
       /**

@@ -111,6 +111,11 @@ export default function AdminUsersList() {
     try {
       // Call the DELETE endpoint
       await api.delete(`/users/${userToDelete._id}`);
+      // API call to update user role/status
+      await api.put(`/users/${updatedUser._id}/role`, { 
+        role: updatedUser.role,
+        isLRCAdmin: updatedUser.isLRCAdmin 
+      });
       
       // Refresh list
       const response = await api.get('/users');
@@ -134,7 +139,7 @@ export default function AdminUsersList() {
       setSelectedUser(null);
     } catch (error) {
       console.error("Error updating user:", error);
-      alert("Failed to update user.");
+      alert(error.response?.data?.message || "Failed to update user.");
     }
   };
 
@@ -180,6 +185,7 @@ export default function AdminUsersList() {
                 <th>UP Mail</th>
                 <th>Full Name</th>
                 <th>Degree Program</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -198,6 +204,11 @@ export default function AdminUsersList() {
                     <td>{user.email}</td>
                     <td>{user.name}</td>
                     <td>{user.degree_program || 'N/A'}</td>
+                    <td>
+                      <span className={`status-pill status-${user.status || 'active'}`}>
+                        {user.status || 'active'}
+                      </span>
+                    </td>
                     <td className="admin-action-cell">
                       <button className="admin-action-icon" onClick={(e) => toggleActionMenu(user._id, e)}>
                         ⋮

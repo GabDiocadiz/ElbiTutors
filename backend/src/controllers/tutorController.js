@@ -1,5 +1,6 @@
 import Tutor from "../models/Tutor.js";
 import User from "../models/User.js";
+import AuditLog from "../models/AuditLog.js";
 import ApiError from "../utils/ApiError.js";
 
 /**
@@ -13,23 +14,25 @@ export const getTutors = async (req, res, next) => {
   const { keyword, subject } = req.query;
 
   try {
+    // SRS: Only allow ACTIVE users to be listed as tutors
+    const activeUsers = await User.find({ status: 'active' }).select('_id');
+    const activeUserIds = activeUsers.map(u => u._id);
+
     // Base Query: We only list CERTIFIED tutors (SRS 2.3)
-    let query = { certified: true };
+    let query = { 
+      certified: true,
+      userId: { $in: activeUserIds }
+    };
 
     // --- SEARCH LOGIC ---
     if (keyword) {
       const regex = new RegExp(keyword, 'i'); // Case-insensitive
 
-      // Step A: Find Users matching the name (e.g., "Juan")
-      const userMatches = await User.find({ name: regex }).select('_id');
+      // Step A: Find Users matching the name AND are active
+      const userMatches = await User.find({ name: regex, status: 'active' }).select('_id');
       const userIds = userMatches.map(u => u._id);
 
       // Step B: Construct Tutor Query
-      // Match if: 
-      // 1. The Tutor's User ID is in the name list OR
-      // 2. The Tutor's Bio matches OR
-      // 3. The Tutor's Specialization text matches OR
-      // 4. The Tutor offers a subject matching the keyword
       query.$or = [
         { userId: { $in: userIds } },
         { bio: regex },
@@ -46,7 +49,7 @@ export const getTutors = async (req, res, next) => {
 
     // Execute
     const tutors = await Tutor.find(query)
-      .populate("userId", "name email picture degree_program classification") // Join User Data
+      .populate("userId", "name email picture degree_program classification status") // Join User Data
       .select("-__v"); // Clean output
 
     res.json(tutors);
@@ -93,7 +96,8 @@ export const updateTutorProfile = async (req, res, next) => {
     bio, 
     specializationText, 
     subjectsOffered, 
-    availabilityImage 
+    availabilityImage,
+    googleCalendarLink 
   } = req.body;
 
   try {
@@ -104,33 +108,82 @@ export const updateTutorProfile = async (req, res, next) => {
       throw new ApiError("Tutor profile not found. Are you a certified tutor?", 404);
     }
 
-    // 2. Update Allowed Fields Only (Security)
-    if (bio !== undefined) tutor.bio = bio;
-    
-    // SRS 4.4.3 REQ-4: Store subjects as comma-separated text (or array in model)
-    // We enforce array format here for safety
-    if (subjectsOffered !== undefined) {
-      if (Array.isArray(subjectsOffered)) {
-        tutor.subjectsOffered = subjectsOffered;
-      } else if (typeof subjectsOffered === 'string') {
-        // Handle "CMSC 11, MATH 17" string input just in case
-        tutor.subjectsOffered = subjectsOffered.split(',').map(s => s.trim());
+    // 2. Queue for Approval (SRS 4.4.2 Stimulus 2)
+    tutor.pendingChanges = {
+        bio: bio !== undefined ? bio : tutor.bio,
+        subjectsOffered: subjectsOffered !== undefined ? subjectsOffered : tutor.subjectsOffered,
+        specializationText: specializationText !== undefined ? specializationText : tutor.specializationText,
+        availabilityImage: availabilityImage !== undefined ? availabilityImage : tutor.availabilityImage,
+        googleCalendarLink: googleCalendarLink !== undefined ? googleCalendarLink : tutor.googleCalendarLink
+    };
+    tutor.isProfileVerified = false;
+
+    const updatedTutor = await tutor.save();
+    res.json({ message: "Changes submitted and pending admin approval.", tutor: updatedTutor });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get all tutors with pending profile changes (Admin)
+ * @route   GET /api/tutors/pending
+ * @access  Private (Admin)
+ */
+export const getPendingTutors = async (req, res, next) => {
+  try {
+    const tutors = await Tutor.find({ isProfileVerified: false })
+      .populate("userId", "name email");
+    res.json(tutors);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Approve or Reject Tutor Profile Changes (Admin)
+ * @route   PUT /api/tutors/:id/approve
+ * @access  Private (Admin)
+ */
+export const approveTutorChanges = async (req, res, next) => {
+  const { status } = req.body; // "approve" or "reject"
+  
+  // SRS Granular Check
+  if (req.user.role !== 'admin' && !req.user.permissions?.verifyTutors) {
+      throw new ApiError("Not authorized: Missing 'verifyTutors' permission.", 403);
+  }
+
+  try {
+    const tutor = await Tutor.findById(req.params.id);
+    if (!tutor) throw new ApiError("Tutor profile not found", 404);
+
+    if (status === "approve") {
+      // Move pending changes to live fields
+      if (tutor.pendingChanges) {
+        tutor.bio = tutor.pendingChanges.bio;
+        tutor.subjectsOffered = tutor.pendingChanges.subjectsOffered;
+        tutor.specializationText = tutor.pendingChanges.specializationText;
+        tutor.availabilityImage = tutor.pendingChanges.availabilityImage;
+        tutor.googleCalendarLink = tutor.pendingChanges.googleCalendarLink;
       }
+      tutor.isProfileVerified = true;
+      tutor.pendingChanges = undefined; // Clear queue
+    } else {
+      // Reject: Just clear the queue and keep old data
+      tutor.isProfileVerified = true;
+      tutor.pendingChanges = undefined;
     }
 
-    if (specializationText !== undefined) tutor.specializationText = specializationText;
-    
-    // SRS 4.4.3 REQ-3: Visual representation of availability (Link or Image URL)
-    if (availabilityImage !== undefined) tutor.availabilityImage = availabilityImage;
+    await tutor.save();
 
-    // 3. Save
-    // SRS 4.4.2: "Sends a request to the admins" 
-    // Note: For this implementation, we allow direct edits, but in a full version, 
-    // we might set `tutor.isProfileVerified = false` here to trigger re-approval.
-    const updatedTutor = await tutor.save();
+    await AuditLog.create({
+      actorId: req.user._id,
+      action: `ADMIN_TUTOR_PROFILE_${status.toUpperCase()}`,
+      targetUserId: tutor.userId,
+      details: { tutorId: tutor._id }
+    });
 
-    res.json(updatedTutor);
-
+    res.json({ message: `Tutor profile ${status}d.`, tutor });
   } catch (error) {
     next(error);
   }

@@ -170,7 +170,12 @@ export default function TutorProfileView() {
             <div className="availability-section">
               <h2 className="availability-title">Availability</h2>
               <div className="availability-calendar">
-                <Calendar readOnly={true} availabilityImage={tutorData.availabilityImage} />
+                {/* SRS 4.4.3 REQ-3: Embed Google Calendar Link */}
+                <Calendar 
+                  readOnly={true} 
+                  availabilityImage={tutorData.availabilityImage} 
+                  googleCalendarLink={tutorData.googleCalendarLink}
+                />
               </div>
             </div>
           </div>
