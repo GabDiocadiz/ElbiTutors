@@ -117,6 +117,10 @@ export const login = async (req, res, next) => {
  */
 export const googleLogin = async (req, res, next) => {
   try {
+    // --- DEBUGGING LOG ---
+    console.log("Auth Controller - Configured Redirect URI:", googleClient.redirectUri);
+    // --- END DEBUGGING LOG ---
+    
     const { code, degree_program, classification, student_number } = req.body;
 
     if (!code) {
