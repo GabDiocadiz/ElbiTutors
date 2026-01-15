@@ -203,3 +203,28 @@ export const updateUserStatus = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // 1. Delete the User
+    await user.deleteOne();
+
+    // 2. (Optional) Cleanup associated Tutor profile if exists
+    await Tutor.findOneAndDelete({ userId: req.params.id });
+
+    // 3. Log the action
+    await AuditLog.create({
+      actorId: req.user._id,
+      action: "ADMIN_DELETE_USER",
+      targetUserId: req.params.id,
+      details: { name: user.name, email: user.email }
+    });
+
+    res.json({ message: "User removed from database" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

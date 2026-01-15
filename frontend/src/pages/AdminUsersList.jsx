@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminEditUserModal from '../components/EditUser';
+import ConfirmationModal from '../components/ConfirmationModal'; // Import the new modal
 import api from '../services/api';
 import '../styles/Admin.css';
 
@@ -11,18 +12,20 @@ export default function AdminUsersList() {
   const [selectedRows, setSelectedRows] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   
-  // State for Dropdown Action Menu and Modal
+  // State for Menus
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
+  
+  // State for Modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // New state for delete modal
   const [selectedUser, setSelectedUser] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null); // Track who we are deleting
 
   const itemsPerPage = 10;
-
-  // State for Users and UI
   const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch users from API
+  // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -37,7 +40,7 @@ export default function AdminUsersList() {
     fetchUsers();
   }, []);
 
-  // Close dropdown when clicking outside
+  // Click Outside Listener
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest('.admin-action-cell')) {
@@ -48,7 +51,7 @@ export default function AdminUsersList() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  // Functional Search & Filter Logic
+  // Filter Logic
   const filteredUsers = useMemo(() => {
     return allUsers.filter(user => {
       const roleFilter = selectedFilter === 'all' 
@@ -79,9 +82,7 @@ export default function AdminUsersList() {
   };
 
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
+    if (newPage >= 1 && newPage <= totalPages) setCurrentPage(newPage);
   };
 
   const toggleActionMenu = (id, e) => {
@@ -95,15 +96,40 @@ export default function AdminUsersList() {
     setOpenActionMenuId(null);
   };
 
-  const handleSaveUser = async (updatedUser) => {
+  // 1. Trigger the Modal (Don't delete yet)
+  const handleDeleteClick = (user, e) => {
+    if (e) e.stopPropagation();
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+    setOpenActionMenuId(null);
+  };
+
+  // 2. Actually Delete (Called by Modal)
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+
     try {
-      // API call to update user role/status (assuming role update for now)
-      await api.put(`/users/${updatedUser._id}/role`, { role: updatedUser.role });
+      // Call the DELETE endpoint
+      await api.delete(`/users/${userToDelete._id}`);
       
       // Refresh list
       const response = await api.get('/users');
       setAllUsers(response.data);
       
+      // Reset state
+      setIsDeleteModalOpen(false);
+      setUserToDelete(null);
+    } catch (error) {
+      console.error("Error deleting user:", error.response?.data || error.message);
+      alert(error.response?.data?.message || "Failed to delete user.");
+    }
+  };
+
+  const handleSaveUser = async (updatedUser) => {
+    try {
+      await api.put(`/users/${updatedUser._id}/role`, { role: updatedUser.role });
+      const response = await api.get('/users');
+      setAllUsers(response.data);
       setIsEditModalOpen(false);
       setSelectedUser(null);
     } catch (error) {
@@ -112,24 +138,6 @@ export default function AdminUsersList() {
     }
   };
 
-  const handleDelete = async (user) => {
-    if(window.confirm(`Are you sure you want to delete ${user.name}? This will deactivate their account.`)) {
-      try {
-        // We use status update to 'inactive' as a soft delete
-        await api.put(`/users/${user._id}/status`, { status: 'inactive' });
-        
-        // Refresh list
-        const response = await api.get('/users');
-        setAllUsers(response.data);
-      } catch (error) {
-        console.error("Error deleting user:", error);
-        alert("Failed to delete user.");
-      }
-    }
-    setOpenActionMenuId(null);
-  };
-
-  // Helper to display role
   const displayRole = (role) => {
     if (role.toLowerCase() === 'tutor') return 'LRC';
     if (role.toLowerCase() === 'tutee') return 'Tutee';
@@ -139,11 +147,7 @@ export default function AdminUsersList() {
   return (
     <div className="admin-page">
       <div className="admin-container">
-        
-        <button 
-          className="admin-back-button"
-          onClick={() => navigate('/admin/dashboard')}
-        >
+        <button className="admin-back-button" onClick={() => navigate('/admin/dashboard')}>
           ← Back to Dashboard
         </button>
 
@@ -151,26 +155,10 @@ export default function AdminUsersList() {
 
         <div className="admin-controls">
           <div className="admin-chip-group">
-            <button 
-              className={`admin-chip ${selectedFilter === 'all' ? 'active' : ''}`}
-              onClick={() => { setSelectedFilter('all'); setCurrentPage(1); }}
-            >
-              All
-            </button>
-            <button 
-              className={`admin-chip ${selectedFilter === 'tutee' ? 'active' : ''}`}
-              onClick={() => { setSelectedFilter('tutee'); setCurrentPage(1); }}
-            >
-              Tutee Only
-            </button>
-            <button 
-              className={`admin-chip ${selectedFilter === 'tutor' ? 'active' : ''}`}
-              onClick={() => { setSelectedFilter('tutor'); setCurrentPage(1); }}
-            >
-              LRC
-            </button>
+            <button className={`admin-chip ${selectedFilter === 'all' ? 'active' : ''}`} onClick={() => setSelectedFilter('all')}>All</button>
+            <button className={`admin-chip ${selectedFilter === 'tutee' ? 'active' : ''}`} onClick={() => setSelectedFilter('tutee')}>Tutee Only</button>
+            <button className={`admin-chip ${selectedFilter === 'tutor' ? 'active' : ''}`} onClick={() => setSelectedFilter('tutor')}>LRC</button>
           </div>
-
           <div className="admin-search">
             <input
               type="text"
@@ -179,9 +167,6 @@ export default function AdminUsersList() {
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               className="admin-search-input"
             />
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M14 14L11.1 11.1M12.6667 7.33333C12.6667 10.2789 10.2789 12.6667 7.33333 12.6667C4.38781 12.6667 2 10.2789 2 7.33333C2 4.38781 4.38781 2 7.33333 2C10.2789 2 12.6667 4.38781 12.6667 7.33333Z" stroke="#1E1E1E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
           </div>
         </div>
 
@@ -189,9 +174,7 @@ export default function AdminUsersList() {
           <table className="admin-table">
             <thead>
               <tr className="admin-table-header">
-                <th className="admin-table-checkbox">
-                  <div className="checkbox"></div>
-                </th>
+                <th className="admin-table-checkbox"><div className="checkbox"></div></th>
                 <th>Role</th>
                 <th>Student Number</th>
                 <th>UP Mail</th>
@@ -208,10 +191,7 @@ export default function AdminUsersList() {
                     className={`admin-table-row ${selectedRows.includes(user._id) ? 'selected' : ''}`}
                   >
                     <td className="admin-table-checkbox">
-                      <div 
-                        className={`checkbox ${selectedRows.includes(user._id) ? 'checked' : ''}`}
-                        onClick={() => handleRowSelect(user._id)}
-                      ></div>
+                      <div className={`checkbox ${selectedRows.includes(user._id) ? 'checked' : ''}`} onClick={() => handleRowSelect(user._id)}></div>
                     </td>
                     <td>{displayRole(user.role)}</td>
                     <td>{user.student_number || 'N/A'}</td>
@@ -219,10 +199,7 @@ export default function AdminUsersList() {
                     <td>{user.name}</td>
                     <td>{user.degree_program || 'N/A'}</td>
                     <td className="admin-action-cell">
-                      <button 
-                        className="admin-action-icon"
-                        onClick={(e) => toggleActionMenu(user._id, e)}
-                      >
+                      <button className="admin-action-icon" onClick={(e) => toggleActionMenu(user._id, e)}>
                         ⋮
                       </button>
                       
@@ -231,7 +208,12 @@ export default function AdminUsersList() {
                           <button className="admin-action-item" onClick={() => handleEdit(user)}>
                             Edit
                           </button>
-                          <button className="admin-action-item delete" onClick={() => handleDelete(user)}>
+                          
+                          {/* DELETE BUTTON */}
+                          <button 
+                            className="admin-action-item delete" 
+                            onClick={(e) => handleDeleteClick(user, e)}
+                          >
                             Delete
                           </button>
                         </div>
@@ -240,11 +222,7 @@ export default function AdminUsersList() {
                   </tr>
                 ))
               ) : (
-                <tr>
-                  <td colSpan="7" className="no-data-cell">
-                    No users found matching your search.
-                  </td>
-                </tr>
+                <tr><td colSpan="7" className="no-data-cell">No users found.</td></tr>
               )}
             </tbody>
           </table>
@@ -252,32 +230,27 @@ export default function AdminUsersList() {
 
         {totalPages > 1 && (
           <div className="admin-pagination">
-            <button 
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className={`admin-chip ${currentPage === 1 ? 'disabled' : ''}`}
-            >
-              Previous
-            </button>
-            <span className="admin-pagination-text">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button 
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className={`admin-chip ${currentPage === totalPages ? 'disabled' : ''}`}
-            >
-              Next
-            </button>
+             <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className={`admin-chip ${currentPage === 1 ? 'disabled' : ''}`}>Previous</button>
+             <span className="admin-pagination-text">Page {currentPage} of {totalPages}</span>
+             <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className={`admin-chip ${currentPage === totalPages ? 'disabled' : ''}`}>Next</button>
           </div>
         )}
 
-        {/* Edit Modal */}
+        {/* Edit User Modal */}
         <AdminEditUserModal 
           isOpen={isEditModalOpen} 
           onClose={() => setIsEditModalOpen(false)} 
           user={selectedUser} 
           onSave={handleSaveUser}
+        />
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal 
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={confirmDelete}
+          title="Confirm Deletion"
+          message={`Are you sure about this action? This will permanently delete ${userToDelete?.name} from the database.`}
         />
       </div>
     </div>

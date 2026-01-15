@@ -5,7 +5,8 @@ import {
   getUsers,
   createUser,
   updateUserRole,
-  updateUserStatus
+  updateUserStatus,
+  deleteUser
 } from "../controllers/userController.js";
 import { protect, adminOnly } from "../middlewares/authMiddleware.js";
 
@@ -21,5 +22,6 @@ router.get("/", protect, adminOnly, getUsers);
 router.post("/", protect, adminOnly, createUser);
 router.put("/:id/role", protect, adminOnly, updateUserRole);
 router.put("/:id/status", protect, adminOnly, updateUserStatus);
+router.delete("/:id", protect, adminOnly, deleteUser);
 
 export default router;
