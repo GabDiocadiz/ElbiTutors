@@ -16,9 +16,8 @@ export const loginSchema = Joi.object({
 });
 
 export const googleLoginSchema = Joi.object({
-  credential: Joi.string().optional(),
-  idToken: Joi.string().optional(),
+  code: Joi.string().required(), // Require the authorization code
   degree_program: Joi.string().optional(),
   classification: Joi.string().optional(),
   student_number: Joi.string().optional(),
-}).or('credential', 'idToken'); // Require at least one
+});
