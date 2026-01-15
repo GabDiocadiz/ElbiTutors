@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react"; // Removed useEffect as it's not used
 import { useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google"; // Used this
+import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 import toast from "react-hot-toast";
@@ -11,26 +11,42 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { setAuthSession } = useAuth();
   const navigate = useNavigate();
+  const googleButtonContainerRef = useRef(null); // Ref for the container div
+
+  const triggerGoogleLogin = () => {
+    setLoading(true);
+    if (googleButtonContainerRef.current) {
+      // The Google button is rendered inside the container; we need to find and click it.
+      const googleButton = googleButtonContainerRef.current.querySelector('div[role="button"]');
+      if (googleButton) {
+        googleButton.click();
+      } else {
+        toast.error("Google login is not ready. Please wait a moment and try again.");
+        setLoading(false);
+      }
+    } else {
+      toast.error("Google login component failed to load.");
+      setLoading(false);
+    }
+  };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    if (!credentialResponse?.credential) { // This is what you were expecting
+    if (!credentialResponse?.credential) {
       toast.error("Google login failed: missing credential.");
+      setLoading(false);
       return;
     }
 
+    // setLoading(true) was already called by triggerGoogleLogin
     try {
-      setLoading(true);
-
       const response = await api.post("/auth/google", {
         credential: credentialResponse.credential,
       });
 
-      // Existing user → log in
       if (response?.data?.token && response?.data?.user) {
         const { token, user } = response.data;
         setAuthSession(token, user);
         
-        // Redirect based on role
         if (user.role === 'admin' || user.isLRCAdmin) {
           navigate("/admin/dashboard");
         } else {
@@ -38,41 +54,31 @@ export default function Login() {
         }
         
         toast.success(`Welcome back, ${user.name}!`);
-        return;
+      } else {
+        throw new Error("Unexpected server response");
       }
-
-      throw new Error("Unexpected server response");
 
     } catch (err) {
       console.error("Google login error:", err.response?.data || err.message);
-
-      // NEW USER: 404 + googleData
       const googleData = err.response?.data?.googleData;
       if (googleData) {
-        // IMPORTANT: Attach the credential (ID Token) to the data object
-        // This is required for the final registration step in TermsAndConditions
         const dataToSave = { 
           ...googleData, 
           idToken: credentialResponse.credential 
         };
-        
         localStorage.setItem("googleData", JSON.stringify(dataToSave));
         navigate("/basic-info", { state: { googleData: dataToSave, role: "tutee" } });
-        return;
+      } else {
+        toast.error(err.response?.data?.message || "Google login failed. Please try again.");
       }
-
-      toast.error(
-        err.response?.data?.message || "Google login failed. Please try again."
-      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCustomButtonClick = () => {
-    const googleButton = document.querySelector('div[role="button"]');
-    if (googleButton) googleButton.click();
-    else alert("Google login button not ready. Please try again.");
+  const handleGoogleError = () => {
+    toast.error("Google login failed. Please try again or check your browser settings.");
+    setLoading(false);
   };
 
   return (
@@ -86,22 +92,25 @@ export default function Login() {
           />
 
           <button
-            onClick={handleCustomButtonClick}
+            onClick={triggerGoogleLogin}
             className="login-btn-maroon"
             disabled={loading}
           >
-            {loading ? "Connecting..." : <>Login with <strong>UP Mail</>}
+            {loading ? "Connecting..." : <>Login with <strong>UP Mail</strong></>}
           </button>
 
-          {/* RESTORED BUTTON */}
           <button onClick={() => navigate("/about")} className="login-btn-gray">
             What is ELBI Tutors?
           </button>
 
-          <div style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>
+          {/* This div holds the invisible Google button */}
+          <div
+            ref={googleButtonContainerRef}
+            style={{ position: 'absolute', top: '-1000px', left: '-1000px' }}
+          >
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
-              onError={() => alert("Google login failed")}
+              onError={handleGoogleError}
               useOneTap={false}
             />
           </div>
