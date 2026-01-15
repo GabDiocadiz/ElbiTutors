@@ -7,7 +7,7 @@ import {
   cancelSession,
   createGroupSession
 } from "../controllers/sessionController.js";
-import { protect, adminOnly } from "../middlewares/authMiddleware.js";
+import { protect, adminOnly, tutorOnly } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
